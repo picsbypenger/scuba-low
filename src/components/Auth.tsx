@@ -16,11 +16,11 @@ const Auth = () => {
 
     try {
       if (mode === 'signup') {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         setMessage({ text: 'Account created successfully!', type: 'success' });
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         setMessage({ text: 'Signed in successfully.', type: 'success' });
       }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getHandicaps, getRounds, deleteRound, updateRound, getUser } from '../api';
-import { Trophy, History, TrendingUp } from 'lucide-react';
+import { getHandicaps, getRounds, getUser } from '../api';
+import { History } from 'lucide-react';
 
 const Dashboard = () => {
   const [handicaps, setHandicaps] = useState<any[]>([]);
@@ -73,16 +73,6 @@ const Dashboard = () => {
       setProfileRounds([]);
     } finally {
       setLoadingProfileRounds(false);
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to delete this round?')) return;
-    try {
-      await deleteRound(id);
-      fetchData();
-    } catch (error) {
-      alert('Failed to delete round');
     }
   };
 

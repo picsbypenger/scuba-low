@@ -6,7 +6,7 @@ import ProfileManager from './components/ProfileManager';
 import CourseManager from './components/CourseManager';
 import AddRoundForm from './components/AddRoundForm';
 import Auth from './components/Auth';
-import { Trophy, Map, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
+import { Map, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
 
 function App() {
   const [session, setSession] = useState<any>(null);

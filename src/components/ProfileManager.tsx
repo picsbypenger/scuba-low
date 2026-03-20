@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
-import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps, getUser } from '../api';
+import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
 import { User, Save, Trash2, Edit2, X, Check } from 'lucide-react';
 
 const ProfileManager = () => {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const [handicap, setHandicap] = useState<number | null>(null);
 
   const [rounds, setRounds] = useState<any[]>([]);
@@ -19,7 +18,6 @@ const ProfileManager = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const uid = user?.id || null;
-      setUserId(uid);
 
       // Profile name
       const profilesRes = await getProfiles();

@@ -9,7 +9,6 @@ const CourseManager = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [showAddCourse, setShowAddCourse] = useState(false);
   
   // New Tee form
@@ -35,11 +34,6 @@ const CourseManager = () => {
     fetchCourses();
   }, []);
 
-  // Keep add-course panel collapsed when user is actively searching
-  useEffect(() => {
-    if (searchQuery) setShowAddCourse(false);
-  }, [searchQuery]);
-
   useEffect(() => {
     if (selectedCourseId) {
       // small delay to ensure element is mounted
@@ -60,7 +54,7 @@ const CourseManager = () => {
   }, [selectedCourseId]);
 
   // Filter courses when user types in the search box or the create inputs
-  const activeFilter = (searchQuery || newCourseName || newCourseLocation).trim().toLowerCase();
+  const activeFilter = (newCourseName || newCourseLocation).trim().toLowerCase();
   const filteredCourses = activeFilter
     ? courses.filter(c => {
         const name = (c.name || '').toLowerCase();
