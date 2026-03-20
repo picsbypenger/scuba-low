@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react';
 import { getHandicaps, getRounds, deleteRound, updateRound, getUser } from '../api';
-import { Trophy, History, TrendingUp, Trash2, Edit2, X, Check } from 'lucide-react';
+import { Trophy, History, TrendingUp } from 'lucide-react';
 
 const Dashboard = () => {
   const [handicaps, setHandicaps] = useState<any[]>([]);
   const [recentRounds, setRecentRounds] = useState<any[]>([]);
+  const [profileQuery, setProfileQuery] = useState('');
+  const [matchedProfiles, setMatchedProfiles] = useState<any[]>([]);
+  const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
+  const [profileRounds, setProfileRounds] = useState<any[]>([]);
+  const [loadingProfileRounds, setLoadingProfileRounds] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   
-  // Edit State
-  const [editingRoundId, setEditingRoundId] = useState<number | null>(null);
-  const [editScore, setEditScore] = useState('');
-  const [editAdjusted, setEditAdjusted] = useState('');
+  // Dashboard is read-only for rounds (editing moved to Profile)
 
   const fetchData = async () => {
     try {
@@ -20,7 +22,18 @@ const Dashboard = () => {
 
       const [handicapsRes, roundsRes] = await Promise.all([getHandicaps(), getRounds()]);
       setHandicaps(handicapsRes.data || []);
-      setRecentRounds(roundsRes.data || []);
+      // compute differential client-side when backend/view doesn't provide it
+      const rounds = (roundsRes.data || []).map((r: any) => {
+        const adjusted = r.adjusted_gross_score ?? r.gross_score;
+        if (r.tee && r.tee.slope && typeof r.tee.rating === 'number' && typeof adjusted === 'number') {
+          const diff = (113 / r.tee.slope) * (adjusted - r.tee.rating);
+          return { ...r, differential: Math.round(diff * 10) / 10 };
+        }
+        return { ...r, differential: null };
+      });
+      setRecentRounds(rounds);
+      // initialize matchedProfiles to all handicaps
+      setMatchedProfiles((handicapsRes.data || []).slice().sort((a: any,b: any) => (a.profile?.name || '').localeCompare(b.profile?.name || '')));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -32,6 +45,37 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (!profileQuery) {
+      setMatchedProfiles(handicaps.slice().sort((a: any,b: any) => (a.profile?.name || '').localeCompare(b.profile?.name || '')));
+    } else {
+      const q = profileQuery.trim().toLowerCase();
+      setMatchedProfiles(handicaps.filter(h => (h.profile?.name || '').toLowerCase().includes(q)).slice().sort((a:any,b:any) => (a.profile?.name||'').localeCompare(b.profile?.name||'')));
+    }
+  }, [profileQuery, handicaps]);
+
+  const handleSelectProfile = async (p: any) => {
+    setSelectedProfile(p);
+    setLoadingProfileRounds(true);
+    try {
+      const roundsRes = await getRounds(p.golfer_id);
+      const rounds = (roundsRes.data || []).map((r: any) => {
+        const adjusted = r.adjusted_gross_score ?? r.gross_score;
+        if (r.tee && r.tee.slope && typeof r.tee.rating === 'number' && typeof adjusted === 'number') {
+          const diff = (113 / r.tee.slope) * (adjusted - r.tee.rating);
+          return { ...r, differential: Math.round(diff * 10) / 10 };
+        }
+        return { ...r, differential: null };
+      });
+      setProfileRounds(rounds);
+    } catch (err) {
+      console.error('Error fetching profile rounds', err);
+      setProfileRounds([]);
+    } finally {
+      setLoadingProfileRounds(false);
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (!window.confirm('Are you sure you want to delete this round?')) return;
     try {
@@ -42,24 +86,6 @@ const Dashboard = () => {
     }
   };
 
-  const startEdit = (round: any) => {
-    setEditingRoundId(round.id);
-    setEditScore(round.gross_score.toString());
-    setEditAdjusted(round.adjusted_gross_score.toString());
-  };
-
-  const handleUpdate = async (id: number) => {
-    try {
-      await updateRound(id, {
-        gross_score: parseInt(editScore),
-        adjusted_gross_score: parseInt(editAdjusted)
-      });
-      setEditingRoundId(null);
-      fetchData();
-    } catch (error) {
-      alert('Failed to update round');
-    }
-  };
 
   if (loading) return (
     <div className="p-8 text-center flex flex-col items-center">
@@ -105,41 +131,13 @@ const Dashboard = () => {
                 </div>
 
                 <div className="flex items-center space-x-6">
-                  {editingRoundId === round.id ? (
-                    <div className="flex items-center space-x-2">
-                      <input 
-                        type="number" 
-                        value={editScore} 
-                        onChange={e => setEditScore(e.target.value)}
-                        className="w-16 p-1 border rounded text-center font-bold"
-                      />
-                      <button onClick={() => handleUpdate(round.id)} className="p-1 text-green-600 hover:bg-green-50 rounded"><Check size={18}/></button>
-                      <button onClick={() => setEditingRoundId(null)} className="p-1 text-gray-400 hover:bg-gray-50 rounded"><X size={18}/></button>
-                    </div>
-                  ) : (
-                    <div className="text-right">
-                      <div className="text-xl font-black text-gray-900 leading-none">{round.gross_score}</div>
-                      <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {round.differential || '--'}</div>
-                    </div>
-                  )}
+                  <div className="text-right">
+                    <div className="text-xl font-black text-gray-900 leading-none">{round.gross_score}</div>
+                    <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {round.differential || '--'}</div>
+                  </div>
 
                   {/* Actions for current user's rounds */}
-                  {round.golfer_id === currentUserId && editingRoundId !== round.id && (
-                    <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition">
-                      <button 
-                        onClick={() => startEdit(round)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(round.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  )}
+                  {/* editing & delete actions removed from Dashboard */}
                 </div>
               </div>
             ))}
@@ -149,23 +147,53 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats / Info - Smaller column */}
-        <div className="space-y-6">
-          <div className="bg-gradient-to-br from-blue-700 to-blue-900 p-8 rounded-2xl shadow-xl text-white relative overflow-hidden">
-            <div className="relative z-10">
-              <h2 className="text-2xl font-black mb-6 flex items-center tracking-tight">
-                <TrendingUp className="mr-2" /> WHS System
-              </h2>
-              <div className="space-y-6 text-blue-100 text-sm leading-relaxed">
-                <p>Calculated using the official **World Handicap System (WHS)** formula.</p>
-                <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl font-mono text-xs border border-white/10 shadow-inner">
-                  Diff = (113 / Slope) * (Score - Rating)
+        {/* Right column: search other users */}
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+          <h2 className="text-lg font-black mb-4 text-gray-900">Search Players</h2>
+          <input
+            type="search"
+            placeholder="Search by name"
+            value={profileQuery}
+            onChange={(e) => setProfileQuery(e.target.value)}
+            className="w-full p-3 mb-4 border rounded-lg border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <div className="space-y-3 max-h-56 overflow-auto">
+            {matchedProfiles.map((h) => (
+              <button key={h.golfer_id} onClick={() => handleSelectProfile(h)} className={`w-full text-left p-3 rounded-lg border ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'} hover:bg-gray-50`}>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="font-bold text-sm text-gray-900">{h.profile?.name || 'Anonymous'}</div>
+                    <div className="text-xs text-gray-500">{h.profile?.email || ''}</div>
+                  </div>
+                  <div className="text-blue-600 font-black">{h.handicap_index ?? '--'}</div>
                 </div>
-                <p>Your index is the average of your <strong>best 8 differentials</strong> out of your <strong>last 20 rounds</strong>.</p>
-              </div>
-            </div>
-            <Trophy size={160} className="absolute -bottom-10 -right-10 text-white/5 transform -rotate-12" />
+              </button>
+            ))}
+            {matchedProfiles.length === 0 && <p className="text-xs text-gray-400 italic">No players found.</p>}
           </div>
+
+          {selectedProfile && (
+            <div className="mt-6 border-t pt-4">
+              <h3 className="font-black text-sm text-gray-900 mb-3">Recent rounds for {selectedProfile.profile?.name}</h3>
+              {loadingProfileRounds ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+              ) : (
+                <div className="space-y-3 max-h-48 overflow-auto">
+                  {profileRounds.map(r => (
+                    <div key={r.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                      <div className="flex justify-between">
+                        <div className="text-sm font-bold">{r.tee?.course?.name || 'Course'}</div>
+                        <div className="text-sm font-black text-blue-600">{r.differential ?? '--'}</div>
+                      </div>
+                      <div className="text-xs text-gray-500">{r.date} • {r.tee?.color} • Gross {r.gross_score}</div>
+                    </div>
+                  ))}
+                  {profileRounds.length === 0 && <p className="text-xs text-gray-400 italic">No rounds for this player.</p>}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

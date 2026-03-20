@@ -87,31 +87,39 @@ export const createRound = async (roundData: {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Must be logged in");
   
-  return supabase.from('rounds').insert({
-    ...roundData,
+  const res = await supabase.from('rounds').insert({
     tee_id: roundData.tee,
+    date: roundData.date,
+    gross_score: roundData.gross_score,
+    adjusted_gross_score: roundData.adjusted_gross_score,
     golfer_id: user.id
   }).select().single();
+
+  if (res.error) throw res.error;
+  return res;
 };
 
 export const updateRound = async (id: number, roundData: any) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Must be logged in');
-
-  return supabase
+  const res = await supabase
     .from('rounds')
     .update(roundData)
     .eq('id', id)
     .eq('golfer_id', user.id)
     .select()
     .single();
+
+  if (res.error) throw res.error;
+  return res;
 };
 
 export const deleteRound = async (id: number) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Must be logged in');
-
-  return supabase.from('rounds').delete().eq('id', id).eq('golfer_id', user.id);
+  const res = await supabase.from('rounds').delete().eq('id', id).eq('golfer_id', user.id);
+  if (res.error) throw res.error;
+  return res;
 };
 
 // --- HANDICAPS ---

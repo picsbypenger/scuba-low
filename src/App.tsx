@@ -5,13 +5,13 @@ import Dashboard from './components/Dashboard';
 import ProfileManager from './components/ProfileManager';
 import CourseManager from './components/CourseManager';
 import AddRoundForm from './components/AddRoundForm';
-import DataManagement from './components/DataManagement';
 import Auth from './components/Auth';
-import { Trophy, Map, PlusCircle, LayoutDashboard, LogOut, User, Database } from 'lucide-react';
+import { Trophy, Map, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
 
 function App() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -44,10 +44,14 @@ function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
-                <Link to="/" className="flex-shrink-0 flex items-center">
-                  <Trophy className="h-8 w-8 text-blue-600 mr-2" />
-                  <span className="text-xl font-black text-gray-900 tracking-tighter">GOLF<span className="text-blue-600">HANDICAP</span></span>
-                </Link>
+                {/* Mobile menu button on left */}
+                <button
+                  onClick={() => setShowMobileMenu(prev => !prev)}
+                  className="sm:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 mr-3"
+                  aria-label="Toggle navigation"
+                >
+                  {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
+                </button>
                 <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
                   <NavLink 
                     to="/" 
@@ -73,14 +77,7 @@ function App() {
                   >
                     <Map size={18} className="mr-1" /> Courses
                   </NavLink>
-                  <NavLink 
-                    to="/data" 
-                    className={({ isActive }) => 
-                      `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
-                    }
-                  >
-                    <Database size={18} className="mr-1" /> Data
-                  </NavLink>
+                  {/* Data tab removed */}
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -101,6 +98,29 @@ function App() {
               </div>
             </div>
           </div>
+
+          {/* Mobile navigation panel */}
+          {showMobileMenu && (
+            <div className="sm:hidden border-t bg-white">
+              <div className="px-4 pt-2 pb-4 space-y-1">
+                <NavLink to="/" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
+                  Dashboard
+                </NavLink>
+                <NavLink to="/profile" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
+                  Profile
+                </NavLink>
+                <NavLink to="/courses" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
+                  Courses
+                </NavLink>
+                <Link to="/add-round" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800">
+                  New Round
+                </Link>
+                <button onClick={() => { setShowMobileMenu(false); supabase.auth.signOut(); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-red-600">
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          )}
         </nav>
 
         {/* Content */}
@@ -110,7 +130,7 @@ function App() {
             <Route path="/profile" element={<ProfileManager />} />
             <Route path="/courses" element={<CourseManager />} />
             <Route path="/add-round" element={<AddRoundForm />} />
-            <Route path="/data" element={<DataManagement />} />
+            {/* Data route removed */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

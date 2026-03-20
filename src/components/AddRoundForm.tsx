@@ -72,7 +72,14 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!teeId || !date || !grossScore) return;
+    const missing: string[] = [];
+    if (!teeId) missing.push('Tee');
+    if (!date) missing.push('Date');
+    if (!grossScore) missing.push('Gross score');
+    if (missing.length) {
+      alert(`Please fill: ${missing.join(', ')}`);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -87,9 +94,10 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
       setAdjustedScore('');
       if (onRoundAdded) onRoundAdded();
       alert('Round recorded successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding round:', error);
-      alert('Failed to record round. Make sure all fields are filled.');
+      const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+      alert(`Failed to record round: ${msg}`);
     } finally {
       setSubmitting(false);
     }
