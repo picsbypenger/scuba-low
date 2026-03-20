@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { getProfiles, getCourses, getRounds, createCourse, createTee, createRound } from '../api';
 import { Database, Download, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 

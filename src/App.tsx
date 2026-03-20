@@ -5,8 +5,9 @@ import Dashboard from './components/Dashboard';
 import ProfileManager from './components/ProfileManager';
 import CourseManager from './components/CourseManager';
 import AddRoundForm from './components/AddRoundForm';
+import DataManagement from './components/DataManagement';
 import Auth from './components/Auth';
-import { Trophy, Map, PlusCircle, LayoutDashboard, LogOut, User } from 'lucide-react';
+import { Trophy, Map, PlusCircle, LayoutDashboard, LogOut, User, Database } from 'lucide-react';
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -72,6 +73,14 @@ function App() {
                   >
                     <Map size={18} className="mr-1" /> Courses
                   </NavLink>
+                  <NavLink 
+                    to="/data" 
+                    className={({ isActive }) => 
+                      `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
+                    }
+                  >
+                    <Database size={18} className="mr-1" /> Data
+                  </NavLink>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -101,6 +110,7 @@ function App() {
             <Route path="/profile" element={<ProfileManager />} />
             <Route path="/courses" element={<CourseManager />} />
             <Route path="/add-round" element={<AddRoundForm />} />
+            <Route path="/data" element={<DataManagement />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
