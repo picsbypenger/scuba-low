@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles } from '../api';
 import { User, Save, Users } from 'lucide-react';
@@ -6,7 +6,6 @@ import { User, Save, Users } from 'lucide-react';
 const ProfileManager = () => {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [name, setName] = useState('');
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -23,8 +22,6 @@ const ProfileManager = () => {
       if (myProfile) setName(myProfile.name || '');
     } catch (error) {
       console.error('Error fetching profiles:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

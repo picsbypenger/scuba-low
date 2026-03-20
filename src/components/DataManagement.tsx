@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getGolfers, getCourses, getRounds, createGolfer, createCourse, createTee, createRound } from '../api';
+import { getProfiles, getCourses, getRounds, createCourse, createTee, createRound } from '../api';
 import { Database, Download, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const DataManagement = () => {
@@ -11,8 +11,8 @@ const DataManagement = () => {
   const exportData = async () => {
     setStatus({ type: 'loading', message: 'Preparing export...' });
     try {
-      const [golfersRes, coursesRes, roundsRes] = await Promise.all([
-        getGolfers(),
+      const [profilesRes, coursesRes, roundsRes] = await Promise.all([
+        getProfiles(),
         getCourses(),
         getRounds(),
       ]);
@@ -21,8 +21,8 @@ const DataManagement = () => {
         version: '1.0',
         timestamp: new Date().toISOString(),
         data: {
-          golfers: golfersRes.data,
-          courses: coursesRes.data, // This includes nested tees
+          profiles: profilesRes.data,
+          courses: coursesRes.data,
           rounds: roundsRes.data,
         },
       };
@@ -54,39 +54,29 @@ const DataManagement = () => {
     reader.onload = async (event) => {
       try {
         const content = JSON.parse(event.target?.result as string);
-        const { golfers, courses, rounds } = content.data;
+        const { courses, rounds } = content.data;
 
         // ID Mapping to maintain relationships
-        const golferMap: Record<number, number> = {};
-        const courseMap: Record<number, number> = {};
         const teeMap: Record<number, number> = {};
 
-        // 1. Import Golfers
-        for (const g of golfers) {
-          const res = await createGolfer(g.name);
-          golferMap[g.id] = res.data.id;
-        }
-
-        // 2. Import Courses & Tees
+        // 1. Import Courses & Tees
         for (const c of courses) {
           const courseRes = await createCourse(c.name, c.location);
-          courseMap[c.id] = courseRes.data.id;
+          if (courseRes.error) throw courseRes.error;
           
           for (const t of (c.tees || [])) {
             const teeRes = await createTee(courseRes.data.id, t.color, t.rating, t.slope, t.par);
+            if (teeRes.error) throw teeRes.error;
             teeMap[t.id] = teeRes.data.id;
           }
         }
 
-        // 3. Import Rounds
+        // 2. Import Rounds (Associated with CURRENT user)
         for (const r of rounds) {
-          // Find the new IDs using our maps
-          const newGolferId = golferMap[r.golfer];
-          const newTeeId = teeMap[r.tee];
+          const newTeeId = teeMap[r.tee_id || r.tee];
 
-          if (newGolferId && newTeeId) {
+          if (newTeeId) {
             await createRound({
-              golfer: newGolferId,
               tee: newTeeId,
               date: r.date,
               gross_score: r.gross_score,
@@ -95,7 +85,7 @@ const DataManagement = () => {
           }
         }
 
-        setStatus({ type: 'success', message: `Import complete! Restored ${golfers.length} golfers, ${courses.length} courses, and ${rounds.length} rounds.` });
+        setStatus({ type: 'success', message: `Import complete! Restored ${courses.length} courses and ${rounds.length} rounds to your account.` });
       } catch (error) {
         console.error('Import failed:', error);
         setStatus({ type: 'error', message: 'Import failed. Ensure the file is a valid backup JSON.' });
@@ -137,7 +127,7 @@ const DataManagement = () => {
             <h3 className="font-bold text-gray-800 mb-2 flex items-center">
               <Upload size={18} className="mr-2 text-green-500" /> Import
             </h3>
-            <p className="text-sm text-gray-500 mb-4">Restore data from a previously exported backup file.</p>
+            <p className="text-sm text-gray-500 mb-4">Restore courses and rounds from a backup file.</p>
             <label className="block">
               <span className="sr-only">Choose backup file</span>
               <input
@@ -173,7 +163,7 @@ const DataManagement = () => {
           </div>
           <div className="ml-3">
             <p className="text-sm text-yellow-700">
-              <strong>Warning:</strong> Importing data will create <strong>duplicate</strong> records if the same data already exists in your database.
+              <strong>Note:</strong> Imported rounds will be associated with your current account.
             </p>
           </div>
         </div>

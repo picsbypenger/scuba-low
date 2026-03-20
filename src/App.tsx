@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, Navigate } from 'react-router-dom';
 import { supabase } from './supabase';
 import Dashboard from './components/Dashboard';
@@ -6,7 +6,7 @@ import ProfileManager from './components/ProfileManager';
 import CourseManager from './components/CourseManager';
 import AddRoundForm from './components/AddRoundForm';
 import Auth from './components/Auth';
-import { Trophy, Users, Map, PlusCircle, LayoutDashboard, LogOut, User } from 'lucide-react';
+import { Trophy, Map, PlusCircle, LayoutDashboard, LogOut, User } from 'lucide-react';
 
 function App() {
   const [session, setSession] = useState<any>(null);

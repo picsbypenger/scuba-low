@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getCourses, createCourse, createTee } from '../api';
-import { MapPin, Plus, Flag, Trash2 } from 'lucide-react';
+import { MapPin, Plus, Flag } from 'lucide-react';
 
 const CourseManager = () => {
   const [courses, setCourses] = useState<any[]>([]);
@@ -34,7 +34,7 @@ const CourseManager = () => {
     e.preventDefault();
     if (!newCourseName.trim()) return;
     try {
-      const response = await createCourse(newCourseName, newCourseLocation);
+      await createCourse(newCourseName, newCourseLocation);
       setNewCourseName('');
       setNewCourseLocation('');
       fetchCourses();
