@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getCourses, createRound } from '../api';
 import { searchCourses } from '../api';
-import { Calendar, Flag, Hash, Trophy, Search, ChevronDown } from 'lucide-react';
+import { Calendar, Hash, Trophy, Search, ChevronDown } from 'lucide-react';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
   const [courses, setCourses] = useState<any[]>([]);

@@ -85,7 +85,6 @@ const DataManagement = () => {
 
           if (newTeeId) {
             await createRound({
-              golfer_id: user.id,
               tee: newTeeId,
               date: r.date,
               gross_score: r.gross_score,
