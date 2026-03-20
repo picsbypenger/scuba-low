@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from 'react';
 import { getProfiles, getCourses, getRounds, createCourse, createTee, createRound } from '../api';
 import { Database, Download, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../supabase.ts';
 
 const DataManagement = () => {
   const [status, setStatus] = useState<{ type: 'idle' | 'loading' | 'success' | 'error'; message: string }>({
@@ -53,13 +54,20 @@ const DataManagement = () => {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
+        // 1. Fetch the user once before processing the file
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError || !user) {
+          throw new Error("You must be logged in to import rounds.");
+        }
+
         const content = JSON.parse(event.target?.result as string);
         const { courses, rounds } = content.data;
 
         // ID Mapping to maintain relationships
         const teeMap: Record<number, number> = {};
 
-        // 1. Import Courses & Tees
+        // 2. Import Courses & Tees
         for (const c of courses) {
           const courseRes = await createCourse(c.name, c.location);
           if (courseRes.error) throw courseRes.error;
@@ -71,12 +79,13 @@ const DataManagement = () => {
           }
         }
 
-        // 2. Import Rounds (Associated with CURRENT user)
+        // 3. Import Rounds (Associated with CURRENT user)
         for (const r of rounds) {
           const newTeeId = teeMap[r.tee_id || r.tee];
 
           if (newTeeId) {
             await createRound({
+              golfer_id: user.id,
               tee: newTeeId,
               date: r.date,
               gross_score: r.gross_score,
@@ -85,10 +94,10 @@ const DataManagement = () => {
           }
         }
 
-        setStatus({ type: 'success', message: `Import complete! Restored ${courses.length} courses and ${rounds.length} rounds to your account.` });
-      } catch (error) {
+        setStatus({ type: 'success', message: `Import complete! Restored ${courses?.length || 0} courses and ${rounds?.length || 0} rounds to your account.` });
+      } catch (error: any) {
         console.error('Import failed:', error);
-        setStatus({ type: 'error', message: 'Import failed. Ensure the file is a valid backup JSON.' });
+        setStatus({ type: 'error', message: error.message || 'Import failed. Ensure the file is a valid backup JSON.' });
       }
     };
     reader.readAsText(file);

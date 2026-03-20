@@ -40,6 +40,7 @@ export const getRounds = (golferId?: string) => {
 };
 
 export const createRound = async (roundData: {
+  golfer_id: string;
   tee: number;
   date: string;
   gross_score: number;

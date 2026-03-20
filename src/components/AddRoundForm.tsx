@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getCourses, createRound } from '../api';
 import { Calendar, Flag, Hash, Trophy } from 'lucide-react';
-import { supabase } from '../supabaseClient'; 
+import { supabase } from '../supabase.ts'; 
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
   const [courses, setCourses] = useState<any[]>([]);
@@ -45,7 +45,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
 
       await createRound({
         golfer_id: user.id,
-        tee_id: parseInt(teeId),
+        tee: parseInt(teeId),
         date,
         gross_score: parseInt(grossScore),
         adjusted_gross_score: parseInt(adjustedScore || grossScore),
