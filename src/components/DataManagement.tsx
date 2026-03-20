@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { getProfiles, getCourses, getRounds, createCourse, createTee, createRound } from '../api';
 import { Database, Download, Upload, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -44,7 +44,7 @@ const DataManagement = () => {
     }
   };
 
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImport = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 

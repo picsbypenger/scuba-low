@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { getCourses, createCourse, createTee } from '../api';
 import { MapPin, Plus, Flag } from 'lucide-react';
 
@@ -30,7 +30,7 @@ const CourseManager = () => {
     fetchCourses();
   }, []);
 
-  const handleCreateCourse = async (e: React.FormEvent) => {
+  const handleCreateCourse = async (e: FormEvent) => {
     e.preventDefault();
     if (!newCourseName.trim()) return;
     try {
@@ -43,7 +43,7 @@ const CourseManager = () => {
     }
   };
 
-  const handleCreateTee = async (e: React.FormEvent) => {
+  const handleCreateTee = async (e: FormEvent) => {
     e.preventDefault();
     if (!selectedCourseId || !teeColor || !teeRating || !teeSlope || !teePar) return;
     try {

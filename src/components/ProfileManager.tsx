@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles } from '../api';
 import { User, Save, Users } from 'lucide-react';

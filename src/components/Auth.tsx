@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { supabase } from '../supabase';
 import { Mail, LogIn, Trophy } from 'lucide-react';
 
@@ -7,7 +7,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);

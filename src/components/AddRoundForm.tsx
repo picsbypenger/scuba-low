@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getCourses, createRound } from '../api';
 import { Calendar, Flag, Hash, Trophy } from 'lucide-react';
+// IMPORTANT: Adjust this path to point to your actual Supabase setup file
+import { supabase } from '../supabaseClient'; 
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
   const [courses, setCourses] = useState<any[]>([]);
@@ -34,20 +36,34 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
 
     setSubmitting(true);
     try {
+      // 1. Fetch the currently logged-in user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        alert("You must be logged in to record a round.");
+        setSubmitting(false);
+        return;
+      }
+
+      // 2. Send the full payload including golfer_id
       await createRound({
-        tee: parseInt(teeId),
+        golfer_id: user.id,
+        tee_id: parseInt(teeId), // Changed from 'tee' to 'tee_id' to match DB
         date,
         gross_score: parseInt(grossScore),
         adjusted_gross_score: parseInt(adjustedScore || grossScore),
       });
       
+      // 3. Reset form on success
       setGrossScore('');
       setAdjustedScore('');
       if (onRoundAdded) onRoundAdded();
       alert('Round recorded successfully!');
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Error adding round:', error);
-      alert('Failed to record round. Make sure all fields are filled.');
+      // Added error.message so you can see exactly why it fails if it happens again
+      alert(`Failed to record round: ${error?.message || 'Unknown error'}`);
     } finally {
       setSubmitting(false);
     }
@@ -172,18 +188,4 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition shadow-lg transform active:scale-98 disabled:opacity-50 flex items-center justify-center uppercase tracking-widest"
-          >
-            {submitting ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
-            ) : (
-              'Save Round'
-            )}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-export default AddRoundForm;
+            className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition shadow-lg transform active:scale-
