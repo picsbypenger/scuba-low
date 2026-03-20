@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getCourses, createRound } from '../api';
-import { Calendar, Flag, Hash, Trophy } from 'lucide-react';
-import { supabase } from '../supabase.ts'; 
+import { searchCourses } from '../api';
+import { Calendar, Flag, Hash, Trophy, Search, ChevronDown } from 'lucide-react';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
   const [courses, setCourses] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   
   const [courseId, setCourseId] = useState('');
   const [teeId, setTeeId] = useState('');
@@ -19,7 +22,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
     const fetchData = async () => {
       try {
         const coursesRes = await getCourses();
-        setCourses(coursesRes.data || []);
+        setCourses(coursesRes.data || []); 
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -27,7 +30,45 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
       }
     };
     fetchData();
+
+    // Click outside search to close
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSearch(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Server-side search: query backend when user types
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q) return; // keep current list when empty
+
+    const t = setTimeout(async () => {
+      try {
+        const res = await searchCourses(q);
+        setCourses(res.data || []);
+      } catch (err) {
+        console.error('Search error', err);
+      }
+    }, 220);
+
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const filteredCourses = courses.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleSelectCourse = (course: any) => {
+    setCourseId(course.id.toString());
+    setSearchQuery(course.name);
+    setTeeId('');
+    setShowSearch(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,16 +76,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
 
     setSubmitting(true);
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      
-      if (authError || !user) {
-        alert("You must be logged in to record a round.");
-        setSubmitting(false);
-        return;
-      }
-
       await createRound({
-        golfer_id: user.id,
         tee: parseInt(teeId),
         date,
         gross_score: parseInt(grossScore),
@@ -55,10 +87,9 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
       setAdjustedScore('');
       if (onRoundAdded) onRoundAdded();
       alert('Round recorded successfully!');
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding round:', error);
-      alert(`Failed to record round: ${error?.message || 'Unknown error'}`);
+      alert('Failed to record round. Make sure all fields are filled.');
     } finally {
       setSubmitting(false);
     }
@@ -100,25 +131,43 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Course</label>
+            <div className="space-y-2 relative" ref={searchRef}>
+              <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Course Search</label>
               <div className="relative">
-                <Flag className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <select
-                  value={courseId}
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  value={searchQuery}
                   onChange={(e) => {
-                    setCourseId(e.target.value);
-                    setTeeId('');
+                    setSearchQuery(e.target.value);
+                    setShowSearch(true);
                   }}
-                  className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium bg-white appearance-none"
-                  required
-                >
-                  <option value="">Select a Course</option>
-                  {courses.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  onFocus={() => setShowSearch(true)}
+                  placeholder="Search course name..."
+                  className="w-full pl-10 pr-10 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+                />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
               </div>
+              
+              {showSearch && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                  {filteredCourses.length > 0 ? (
+                    filteredCourses.map(c => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleSelectCourse(c)}
+                        className="w-full text-left px-4 py-3 hover:bg-blue-50 flex flex-col transition"
+                      >
+                        <span className="font-bold text-gray-900">{c.name}</span>
+                        <span className="text-xs text-gray-500">{c.location || 'No location'}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">No courses found</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -142,7 +191,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
               ))}
               {!courseId && (
                 <div className="col-span-full py-4 text-center text-gray-400 italic text-sm">
-                  Please select a course first
+                  Please search and select a course first
                 </div>
               )}
             </div>

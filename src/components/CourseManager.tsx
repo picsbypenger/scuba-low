@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { getCourses, createCourse, createTee } from '../api';
 import { MapPin, Plus, Flag } from 'lucide-react';
 
@@ -7,6 +7,7 @@ const CourseManager = () => {
   const [newCourseName, setNewCourseName] = useState('');
   const [newCourseLocation, setNewCourseLocation] = useState('');
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   
   // New Tee form
@@ -30,20 +31,25 @@ const CourseManager = () => {
     fetchCourses();
   }, []);
 
-  const handleCreateCourse = async (e: FormEvent) => {
+  const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCourseName.trim()) return;
+    
+    setSubmitting(true);
     try {
       await createCourse(newCourseName, newCourseLocation);
       setNewCourseName('');
       setNewCourseLocation('');
-      fetchCourses();
-    } catch (error) {
-      console.error('Error creating course:', error);
+      await fetchCourses();
+      alert('Course added!');
+    } catch (error: any) {
+      alert(error.message || 'Failed to create course');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleCreateTee = async (e: FormEvent) => {
+  const handleCreateTee = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCourseId || !teeColor || !teeRating || !teeSlope || !teePar) return;
     try {
@@ -57,7 +63,8 @@ const CourseManager = () => {
       setTeeColor('');
       setTeeRating('');
       setTeeSlope('');
-      fetchCourses();
+      await fetchCourses();
+      alert('Tee set added!');
     } catch (error) {
       console.error('Error creating tee:', error);
     }
@@ -87,9 +94,16 @@ const CourseManager = () => {
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-blue-700 transition shadow-lg active:scale-95"
+            disabled={submitting}
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-blue-700 transition shadow-lg active:scale-95 disabled:opacity-50"
           >
-            <Plus size={18} className="mr-2" /> Add Course
+            {submitting ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+            ) : (
+              <>
+                <Plus size={18} className="mr-2" /> Add Course
+              </>
+            )}
           </button>
         </form>
 
@@ -108,7 +122,7 @@ const CourseManager = () => {
                   </div>
                 </div>
                 
-                <div className="space-y-2 mb-6">
+                <div className="space-y-2 mb-6 text-left">
                   {course.tees?.map((tee: any) => (
                     <div key={tee.id} className="flex justify-between items-center text-xs p-2 bg-white rounded-lg border border-gray-50 shadow-sm">
                       <span className="font-black text-gray-700 uppercase">{tee.color}</span>
@@ -136,7 +150,7 @@ const CourseManager = () => {
             <Flag className="mr-3 text-blue-600" size={24} />
             <h2 className="text-xl font-black text-gray-900 tracking-tight">Add Tee for {courses.find(c => c.id === selectedCourseId)?.name}</h2>
           </div>
-          <form onSubmit={handleCreateTee} className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleCreateTee} className="grid grid-cols-2 gap-4 text-left">
             <div className="space-y-1">
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Color</label>
               <input
