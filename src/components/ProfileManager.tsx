@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles } from '../api';
 import { User, Save, Users } from 'lucide-react';
@@ -29,16 +29,17 @@ const ProfileManager = () => {
     fetchData();
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
     setSaving(true);
     try {
       await updateProfile(name);
-      fetchData();
+      await fetchData();
       alert('Profile updated!');
     } catch (error) {
       console.error('Error updating profile:', error);
+      alert('Failed to update profile. Check console for details.');
     } finally {
       setSaving(false);
     }

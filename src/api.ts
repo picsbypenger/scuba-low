@@ -5,10 +5,13 @@ export const signIn = (email: string) => supabase.auth.signInWithOtp({ email });
 export const signOut = () => supabase.auth.signOut();
 export const getUser = () => supabase.auth.getUser();
 
-// --- PROFILES (replacing Golfers) ---
+// --- PROFILES ---
 export const getProfiles = () => supabase.from('profiles').select('*');
-export const updateProfile = (name: string) => 
-  supabase.from('profiles').upsert({ id: (supabase.auth.getUser() as any).data?.user?.id, name });
+export const updateProfile = async (name: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Must be logged in to update profile");
+  return supabase.from('profiles').upsert({ id: user.id, name });
+};
 
 // --- COURSES & TEES ---
 export const getCourses = () => supabase.from('courses').select('*, tees(*)');
@@ -20,7 +23,16 @@ export const createTee = (courseId: number, color: string, rating: number, slope
 
 // --- ROUNDS ---
 export const getRounds = (golferId?: string) => {
-  let query = supabase.from('rounds').select('*, tee:tees(*, course:courses(*)), profile:profiles(*)');
+  // We fetch from the table and will calculate differential in the UI for maximum flexibility
+  let query = supabase.from('rounds').select(`
+    *,
+    tee:tees (
+      *,
+      course:courses (*)
+    ),
+    profile:profiles (*)
+  `);
+  
   if (golferId) {
     query = query.eq('golfer_id', golferId);
   }
@@ -36,8 +48,11 @@ export const createRound = async (roundData: {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Must be logged in");
   
+  // Explicitly map columns to match the DB schema exactly
   return supabase.from('rounds').insert({
-    ...roundData,
+    date: roundData.date,
+    gross_score: roundData.gross_score,
+    adjusted_gross_score: roundData.adjusted_gross_score,
     tee_id: roundData.tee,
     golfer_id: user.id
   }).select().single();

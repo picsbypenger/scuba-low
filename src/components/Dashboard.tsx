@@ -7,6 +7,12 @@ const Dashboard = () => {
   const [recentRounds, setRecentRounds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const calculateDifferential = (round: any) => {
+    if (!round.tee) return 0;
+    const diff = (113.0 / round.tee.slope) * (round.adjusted_gross_score - round.tee.rating);
+    return Math.round(diff * 10) / 10;
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -70,7 +76,9 @@ const Dashboard = () => {
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-black text-gray-900 leading-none">{round.gross_score}</div>
-                  <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {round.differential || '--'}</div>
+                  <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">
+                    Diff: {calculateDifferential(round) || '--'}
+                  </div>
                 </div>
               </div>
             ))}
