@@ -69,13 +69,17 @@ const CourseManager = () => {
   }, [selectedCourseId]);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setShowDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   const activeFilter = (newCourseName || newCourseLocation).trim().toLowerCase();
@@ -315,13 +319,25 @@ const CourseManager = () => {
         {/* ─── Header with mobile tabs ─── */}
         <div className="flex w-full items-center mb-6 border-b border-gray-100">
           <h2
-            onClick={() => setActiveTab('browse')}
+            onClick={() => {
+              setActiveTab('browse');
+              setNewCourseName('');
+              setNewCourseLocation('');
+              setShowDropdown(false);
+            }}
             className={`flex-1 lg:flex-none flex items-center justify-center lg:justify-start py-3 lg:px-4 text-xl font-black tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'browse' ? 'text-gray-900 border-b-2 lg:border-none border-blue-500 -mb-[1px] lg:mb-0' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <FlagTriangleRight className="mr-2 text-blue-600" size={24} /> Browse
           </h2>
           <h2
-            onClick={() => setActiveTab('search')}
+            onClick={() => {
+              setActiveTab('search');
+              setSelectedCourseId(null);
+              setTeeColor('');
+              setTeeRating('');
+              setTeeSlope('');
+              setTeePar('');
+            }}
             className={`flex-1 flex items-center justify-center py-3 text-xl font-black tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'search' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[1px]' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <Plus className="mr-2 text-blue-600" size={22} /> Add
@@ -390,7 +406,7 @@ const CourseManager = () => {
                     disabled={Boolean(selectedCourseId)}
                   />
                   {showDropdown && activeFilter && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    <div className="absolute z-20 w-full top-full left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
                       {dropdownCourses.length > 0 ? (
                         <div className="divide-y divide-gray-100">
                           {dropdownCourses.map(c => (

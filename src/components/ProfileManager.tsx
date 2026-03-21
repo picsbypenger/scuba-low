@@ -178,7 +178,7 @@ const ProfileManager = () => {
 
       {/* My Rounds */}
       <div className="flex flex-col flex-1 min-h-0 bg-white py-5 pl-5 pr-4 rounded-2xl border border-gray-100">
-        <h2 className="shrink-0 text-xl font-black mb-3 text-gray-900">My Rounds</h2>
+        <h2 className="shrink-0 text-xl font-black text-gray-900">My Rounds</h2>
 
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar divide-y divide-gray-100">
           {rounds.map(r => (

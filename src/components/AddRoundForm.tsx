@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getCourses, createRound } from '../api';
 import { searchCourses } from '../api';
-import { Calendar, Hash, Search, ChevronDown, Plus } from 'lucide-react';
+import { Hash, Search, ChevronDown, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
@@ -38,13 +38,17 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
     fetchData();
 
     // Click outside search to close
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSearch(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   // Server-side search: query backend when user types
@@ -133,16 +137,13 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Date Played</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
-                  required
-                />
-              </div>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full px-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium bg-white"
+                required
+              />
             </div>
 
             <div className="space-y-2 relative" ref={searchRef}>
@@ -160,28 +161,41 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   placeholder="Search course name..."
                   className="w-full pl-10 pr-10 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                 />
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
-              </div>
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault(); // Prevents input from gaining or losing focus
+                    setShowSearch(!showSearch);
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault();
+                    setShowSearch(!showSearch);
+                  }}
+                  className="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  <ChevronDown size={18} />
+                </button>
 
-              {showSearch && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl max-h-60 overflow-y-auto">
-                  {filteredCourses.length > 0 ? (
-                    filteredCourses.map(c => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => handleSelectCourse(c)}
-                        className="w-full text-left px-4 py-3 hover:bg-blue-50 flex flex-col transition"
-                      >
-                        <span className="font-bold text-gray-900">{c.name}</span>
-                        <span className="text-xs text-gray-500">{c.location || 'No location'}</span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-gray-500 text-sm">No courses found</div>
-                  )}
-                </div>
-              )}
+                {showSearch && (
+                  <div className="absolute z-20 w-full top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                    {filteredCourses.length > 0 ? (
+                      filteredCourses.map(c => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => handleSelectCourse(c)}
+                          className="w-full text-left px-4 py-3 hover:bg-blue-50 flex flex-col transition"
+                        >
+                          <span className="font-bold text-gray-900">{c.name}</span>
+                          <span className="text-xs text-gray-500">{c.location || 'No location'}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-4 text-center text-gray-500 text-sm">No courses found</div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

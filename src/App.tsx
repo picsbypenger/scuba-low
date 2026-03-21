@@ -31,6 +31,7 @@ function App() {
     const [loading, setLoading] = useState(true);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
     const [keyboardOpen, setKeyboardOpen] = useState(false);
+    const [viewportHeight, setViewportHeight] = useState('100dvh');
 
     // Detect mobile keyboard via visualViewport API
     useEffect(() => {
@@ -42,14 +43,22 @@ function App() {
         const handleResize = () => {
             const isKeyboard = window.innerHeight - vv.height > KEYBOARD_THRESHOLD;
             setKeyboardOpen(isKeyboard);
+            
+            // Explicitly map exactly to visual viewport height. This solves Safari/Chrome 
+            // mobile issues where 100dvh doesn't perfectly match the space above the keyboard
+            setViewportHeight(`${vv.height}px`);
 
             // Scroll the focused element into view when keyboard opens
             if (isKeyboard && document.activeElement instanceof HTMLElement) {
+                // Must wait briefly for React/DOM to finish updating container dimensions
                 setTimeout(() => {
                     document.activeElement?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-                }, 100);
+                }, 150);
             }
         };
+
+        // Initialize immediately 
+        setViewportHeight(`${vv.height}px`);
 
         vv.addEventListener('resize', handleResize);
         return () => vv.removeEventListener('resize', handleResize);
@@ -93,7 +102,7 @@ function App() {
                     },
                 }}
             />
-            <div className="h-[100dvh] bg-gray-100 flex flex-col font-sans overflow-hidden">
+            <div style={{ height: viewportHeight }} className="w-full bg-gray-100 flex flex-col font-sans overflow-hidden">
                 {/* Navigation */}
                 <nav className="bg-white shrink-0 z-50">
                     <div className="max-w-7xl mx-auto pl-4 pr-0 sm:px-6 lg:px-8">
@@ -139,6 +148,7 @@ function App() {
                             <div className="flex items-center gap-4 flex-1 justify-end pr-4 sm:pr-0">
                                 <Link
                                     to="/add-round"
+                                    onClick={() => setShowMobileMenu(false)}
                                     className="bg-rust text-white px-4 py-2 rounded-full text-sm font-bold flex items-center hover:opacity-90 transition transform hover:scale-105"
                                 >
                                     <PlusCircle size={18} className="mr-1" /> Add Round

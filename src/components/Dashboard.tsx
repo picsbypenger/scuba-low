@@ -96,10 +96,15 @@ const Dashboard = () => {
 
       <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-4">
         {/* Main Column */}
-        <div className="lg:col-span-2 bg-white px-5 pb-4 pt-2 rounded-2xl border border-gray-100 flex flex-col flex-1 min-h-0">
+        <div className="lg:col-span-2 bg-white pl-5 pr-3 pb-4 pt-2 rounded-2xl border border-gray-100 flex flex-col flex-1 min-h-0">
           <div className="flex w-full items-center mb-2 border-b border-gray-100">
             <h2
-              onClick={() => setActiveTab('rounds')}
+              onClick={() => {
+                setActiveTab('rounds');
+                setProfileQuery('');
+                setSelectedProfile(null);
+                setProfileRounds([]);
+              }}
               className={`flex-1 lg:flex-none flex items-center justify-center lg:justify-start py-3 lg:pr-4 lg:pl-1 text-xl font-black tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'rounds' ? 'text-gray-900 border-b-2 lg:border-none border-blue-500 -mb-[1px] lg:mb-0' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <History className={`mr-2 ${activeTab === 'rounds' ? 'text-blue-500' : 'text-gray-400'} lg:text-blue-500`} /> Recent
