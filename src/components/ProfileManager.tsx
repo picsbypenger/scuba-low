@@ -187,20 +187,35 @@ const ProfileManager = () => {
 
                 {editingRoundId === r.id ? (
                   <div className="mt-4 grid md:grid-cols-4 gap-3">
-                    <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded" />
-                    <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded">
-                      <option value="">Select course</option>
-                      {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                    </select>
-                    <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded">
-                      <option value="">Select tee</option>
-                      {teesForCourse(editData.course_id).map((t: any) => (
-                        <option key={t.id} value={t.id}>{t.color} ({t.rating}/{t.slope})</option>
-                      ))}
-                    </select>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date</label>
+                      <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Course</label>
+                      <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded w-full text-sm font-bold">
+                        <option value="">Select course</option>
+                        {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tee Set</label>
+                      <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded w-full text-sm font-bold">
+                        <option value="">Select tee</option>
+                        {teesForCourse(editData.course_id).map((t: any) => (
+                          <option key={t.id} value={t.id}>{t.color} ({t.rating}/{t.slope})</option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="flex space-x-2">
-                      <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full" />
-                      <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full" />
+                      <div className="w-1/2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Gross</label>
+                        <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                      </div>
+                      <div className="w-1/2">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Adj</label>
+                        <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                      </div>
                     </div>
                   </div>
                 ) : null}
