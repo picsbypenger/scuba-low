@@ -26,6 +26,13 @@ body,
   overflow: hidden;
 }
 
+/* Prevent iOS Safari auto-zoom on input focus (triggers below 16px) */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getCourses, createRound } from '../api';
 import { searchCourses } from '../api';
-import { Calendar, Hash, Trophy, Search, ChevronDown, Plus } from 'lucide-react';
+import { Calendar, Hash, Search, ChevronDown, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
@@ -124,8 +124,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
       <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col flex-1 min-h-0">
         <div className="bg-blue-600 shrink-0 p-4 text-white flex items-center justify-between">
           <div className="flex items-center">
-            <Trophy className="mr-3" size={24} />
-            <h2 className="text-xl font-black tracking-tight uppercase">Add Round</h2>
+            <h2 className="ml-1 text-xl font-black tracking-tight uppercase">Add Round</h2>
           </div>
           <p className="text-white text-[10px] font-black uppercase tracking-widest">WHS Compliant</p>
         </div>

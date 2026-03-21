@@ -110,9 +110,9 @@ const ProfileManager = () => {
     <div className="flex-1 min-h-0 flex flex-col gap-4 w-full max-w-4xl mx-auto">
       {/* My Profile & Handicap */}
       <div className="shrink-0 bg-white p-5 rounded-2xl border border-gray-100">
-        <h2 className="text-xl font-black mb-4 flex items-center text-gray-900 tracking-tight">
+        {/* <h2 className="text-xl font-black mb-4 flex items-center text-gray-900 tracking-tight">
           My Profile
-        </h2>
+        </h2> */}
 
         <div className="flex flex-col items-start w-full">
           <div className="w-full flex items-center gap-2">
@@ -231,7 +231,7 @@ const ProfileManager = () => {
                 ) : null}
               </div>
 
-              <div className="ml-4 flex flex-col items-end space-y-2">
+              <div className="flex flex-col items-end space-y-2">
                 {editingRoundId === r.id ? (
                   <div className="flex flex-col space-y-1">
                     <button onClick={() => saveRound(r.id)} className="p-2 bg-limegreen hover:bg-limegreen-dark text-white rounded transition"><Check size={16} /></button>
