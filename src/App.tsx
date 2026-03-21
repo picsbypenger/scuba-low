@@ -38,51 +38,65 @@ function App() {
         const vv = window.visualViewport;
         if (!vv) return;
 
-        const KEYBOARD_THRESHOLD = 150; // px difference to consider keyboard "open"
+        let lastVvHeight = vv.height;
+        let lastIsKeyboard = false;
 
         const handleResize = () => {
-            const isKeyboard = window.innerHeight - vv.height > KEYBOARD_THRESHOLD;
+            if (!vv) return;
+
+            // Only proceed if height changed significantly or state switched
+            const heightDiff = Math.abs(vv.height - lastVvHeight);
+            const isKeyboard = window.innerHeight - vv.height > 120;
+            const stateChanged = isKeyboard !== lastIsKeyboard;
+
+            if (!stateChanged && heightDiff < 5) return;
+
+            lastVvHeight = vv.height;
+            lastIsKeyboard = isKeyboard;
+
             setKeyboardOpen(isKeyboard);
-            
+
             if (isKeyboard) {
-                // When open, map exactly to visual viewport height. This solves Safari/Chrome 
-                // mobile issues where 100dvh doesn't perfectly match the space above the keyboard
                 setViewportHeight(`${vv.height}px`);
 
-                // Scroll the focused element into view when keyboard opens
-                if (document.activeElement instanceof HTMLElement) {
-                    // Must wait briefly for React/DOM to finish updating container dimensions
+                // Only scroll on transition to keyboard mode to avoid "fighting" the user
+                if (stateChanged && document.activeElement instanceof HTMLElement) {
                     setTimeout(() => {
-                        document.activeElement?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-                    }, 150);
+                        // Use block: 'nearest' to avoid "too far" shifts. 
+                        // It only moves if the element is actually obscured.
+                        document.activeElement?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+                    }, 80);
                 }
             } else {
-                // When keyboard is closed, immediately fallback to CSS 100dvh. 
-                // This eliminates the visualViewport closing event lag and snaps cleanly.
                 setViewportHeight('100dvh');
             }
+        };
+
+        // Revert height FASTER on blur by anticipating the close
+        const handleFocusIn = (e: FocusEvent) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                setKeyboardOpen(true);
+            }
+        };
+        const handleFocusOut = () => {
+            setTimeout(() => {
+                if (!(document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement)) {
+                    setViewportHeight('100dvh');
+                    setKeyboardOpen(false);
+                    // Reset tracking
+                    lastIsKeyboard = false;
+                }
+            }, 50);
         };
 
         // Initial check 
         handleResize();
 
-        // Listen for BOTH viewport changes AND explicit focus events.
-        // Focus events are MUCH faster for hiding/showing elements like the footer.
-        const handleFocusIn = (e: FocusEvent) => {
-           if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-               setKeyboardOpen(true);
-           }
-        };
-        const handleFocusOut = () => {
-           // We let handleResize determine when it's TRULY closed to avoid flickering 
-           // when moving between inputs
-        };
-
         vv.addEventListener('resize', handleResize);
         vv.addEventListener('scroll', handleResize);
         window.addEventListener('focusin', handleFocusIn);
         window.addEventListener('focusout', handleFocusOut);
-        
+
         return () => {
             vv.removeEventListener('resize', handleResize);
             vv.removeEventListener('scroll', handleResize);
@@ -129,7 +143,7 @@ function App() {
                     },
                 }}
             />
-            <div style={{ height: viewportHeight }} className="w-full bg-gray-100 flex flex-col font-sans overflow-hidden">
+            <div style={{ height: viewportHeight }} className="w-full bg-gray-100 flex flex-col font-sans overflow-hidden transition-[height] duration-300 ease-out">
                 {/* Navigation */}
                 <nav className="bg-white shrink-0 z-50">
                     <div className="max-w-7xl mx-auto pl-4 pr-0 sm:px-6 lg:px-8">
@@ -194,8 +208,8 @@ function App() {
 
                     {/* Mobile navigation panel */}
                     {showMobileMenu && (
-                        <div className="sm:hidden border-t bg-white">
-                            <div className="px-4 pt-2 pb-4 space-y-1">
+                        <div className="sm:hidden bg-white">
+                            <div className="px-4 pb-4 space-y-1">
                                 <NavLink to="/" onClick={() => setShowMobileMenu(false)} className={({ isActive }) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
                                     Dashboard
                                 </NavLink>
