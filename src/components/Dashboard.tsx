@@ -98,13 +98,13 @@ const Dashboard = () => {
         {/* Main Column */}
         <div className="lg:col-span-2 bg-white p-4 rounded-xl border border-gray-100 flex flex-col flex-1 min-h-0">
           <div className="flex items-center space-x-6 mb-6 border-b border-gray-100 pb-2">
-            <h2 
+            <h2
               onClick={() => setActiveTab('rounds')}
               className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'rounds' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <History className={`mr-2 ${activeTab === 'rounds' ? 'text-blue-500' : 'text-gray-400'} lg:text-blue-500`} /> Recent Rounds
             </h2>
-            <h2 
+            <h2
               onClick={() => setActiveTab('players')}
               className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'players' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
             >
@@ -112,10 +112,10 @@ const Dashboard = () => {
             </h2>
           </div>
 
-          <div className={`flex-1 min-h-0 ${activeTab === 'rounds' ? 'block' : 'hidden lg:block'}`}>
-            <div className="h-full overflow-y-auto pr-2 custom-scrollbar space-y-3">
+          <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 'rounds' ? 'block' : 'hidden lg:block'}`}>
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar divide-y divide-gray-100">
               {recentRounds.map(round => (
-                <div key={round.id} className="group flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div key={round.id} className="group flex justify-between items-center py-3">
                   <div className="flex-1">
                     <div className="flex items-center">
                       <p className="font-bold text-gray-900">{round.profile?.name || 'Anonymous'}</p>
@@ -140,56 +140,71 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className={`flex-1 lg:hidden ${activeTab === 'players' ? 'block' : 'hidden'}`}>
-            <input
-              type="search"
-              placeholder="Search by name"
-              value={profileQuery}
-              onChange={(e) => setProfileQuery(e.target.value)}
-              className="w-full p-3 mb-4 border rounded-lg border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <div className="space-y-3 max-h-56 overflow-auto custom-scrollbar">
-              {matchedProfiles.map((h) => (
-                <button key={h.golfer_id} onClick={() => handleSelectProfile(h)} className={`w-full text-left p-3 rounded-lg border ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'} hover:bg-gray-50`}>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <div className="font-bold text-sm text-gray-900">{h.profile?.name || 'Anonymous'}</div>
-                      <div className="text-xs text-gray-500">{h.profile?.email || ''}</div>
-                    </div>
-                    <div className="text-blue-600 font-black">{h.handicap_index ?? '--'}</div>
-                  </div>
-                </button>
-              ))}
-              {matchedProfiles.length === 0 && <p className="text-xs text-gray-400 italic">No players found.</p>}
-            </div>
-
-            {selectedProfile && (
-              <div className="mt-6 border-t pt-4">
-                <h3 className="font-black text-sm text-gray-900 mb-3">Recent rounds for {selectedProfile.profile?.name}</h3>
-                {loadingProfileRounds ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
-                ) : (
-                  <div className="space-y-3 max-h-48 overflow-auto custom-scrollbar">
-                    {profileRounds.map(r => (
-                      <div key={r.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <div className="flex justify-between">
-                          <div className="text-sm font-bold">{r.tee?.course?.name || 'Course'}</div>
-                          <div className="text-sm font-black text-blue-600">{r.differential ?? '--'}</div>
+          <div className={`flex-1 min-h-0 flex flex-col lg:hidden ${activeTab === 'players' ? 'flex' : 'hidden'}`}>
+            {!selectedProfile ? (
+              <>
+                <input
+                  type="search"
+                  placeholder="Search by name"
+                  value={profileQuery}
+                  onChange={(e) => setProfileQuery(e.target.value)}
+                  className="w-full p-2.5 mb-2.5 border rounded-lg border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 shrink-0 text-sm"
+                />
+                <div className="flex-1 min-h-0 overflow-auto custom-scrollbar divide-y divide-gray-100">
+                  {matchedProfiles.map((h) => (
+                    <button key={h.golfer_id} onClick={() => handleSelectProfile(h)} className="w-full text-left py-2.5 bg-white hover:bg-gray-50">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-bold text-xs text-gray-900 truncate">{h.profile?.name || 'Anonymous'}</div>
+                          <div className="text-[10px] text-gray-400 truncate">{h.profile?.email || ''}</div>
                         </div>
-                        <div className="text-xs text-gray-500">{r.date} • {r.tee?.color} • Gross {r.gross_score}</div>
+                        <div className="text-blue-600 font-black text-xs">{h.handicap_index ?? '--'}</div>
                       </div>
-                    ))}
-                    {profileRounds.length === 0 && <p className="text-xs text-gray-400 italic">No rounds for this player.</p>}
+                    </button>
+                  ))}
+                  {matchedProfiles.length === 0 && <p className="text-xs text-gray-400 italic py-4 text-center">No players found.</p>}
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 min-h-0 flex flex-col">
+                <div className="mb-4 flex items-center justify-between shrink-0">
+                  <button onClick={() => setSelectedProfile(null)} className="bg-blue-50 border border-blue-100 text-blue-600 font-bold text-[10px] uppercase tracking-wider flex items-center px-3 py-1.5 rounded-xl transition active:scale-95">
+                    <Users className="mr-1.5" size={12} /> All Players
+                  </button>
+                  <div className="text-right">
+                    <div className="font-black text-sm text-gray-900">{selectedProfile.profile?.name}</div>
+                    <div className="text-[10px] font-bold text-blue-600 uppercase">Index: {selectedProfile.handicap_index ?? '--'}</div>
                   </div>
-                )}
+                </div>
+
+                <div className="mt-2 border-t pt-4 flex-1 flex flex-col min-h-0">
+                  <h3 className="font-black text-sm text-gray-900 mb-2 shrink-0">Recent rounds</h3>
+                  <div className="divide-y divide-gray-100 flex-1 overflow-auto custom-scrollbar">
+                    {loadingProfileRounds ? (
+                      <div className="py-4 flex justify-center"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" /></div>
+                    ) : (
+                      <>
+                        {profileRounds.map(r => (
+                          <div key={r.id} className="py-2.5">
+                            <div className="flex justify-between items-center gap-2">
+                              <div className="text-[11px] font-bold text-gray-900 truncate flex-1">{r.tee?.course?.name || 'Course'}</div>
+                              <div className="text-[10px] font-black text-blue-600 shrink-0">Diff: {r.differential ?? '--'}</div>
+                            </div>
+                            <div className="text-[10px] text-gray-400 mt-0.5">{r.date} • {r.tee?.color} • Score: {r.gross_score}</div>
+                          </div>
+                        ))}
+                        {profileRounds.length === 0 && <p className="text-xs text-gray-400 italic py-2">No rounds for this player.</p>}
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Right column: search other users */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100 hidden lg:flex flex-col h-full">
+        <div className="bg-white p-4 rounded-xl border border-gray-100 hidden lg:flex flex-col flex-1 min-h-0">
           <h2 className="text-xl font-black mb-6 flex items-center text-gray-900 tracking-tight border-b border-gray-100 pb-2">
             <Users className="mr-2 text-blue-500" /> Players
           </h2>
@@ -201,42 +216,50 @@ const Dashboard = () => {
             className="w-full p-3 mb-4 border rounded-lg border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <div className="space-y-3 max-h-56 overflow-auto custom-scrollbar">
-            {matchedProfiles.map((h) => (
-              <button key={h.golfer_id} onClick={() => handleSelectProfile(h)} className={`w-full text-left p-3 rounded-lg border ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'} hover:bg-gray-50`}>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-bold text-sm text-gray-900">{h.profile?.name || 'Anonymous'}</div>
-                    <div className="text-xs text-gray-500">{h.profile?.email || ''}</div>
-                  </div>
-                  <div className="text-blue-600 font-black">{h.handicap_index ?? '--'}</div>
-                </div>
-              </button>
-            ))}
-            {matchedProfiles.length === 0 && <p className="text-xs text-gray-400 italic">No players found.</p>}
-          </div>
-
-          {selectedProfile && (
-            <div className="mt-6 border-t pt-4">
-              <h3 className="font-black text-sm text-gray-900 mb-3">Recent rounds for {selectedProfile.profile?.name}</h3>
-              {loadingProfileRounds ? (
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
-              ) : (
-                <div className="space-y-3 max-h-48 overflow-auto custom-scrollbar">
-                  {profileRounds.map(r => (
-                    <div key={r.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-                      <div className="flex justify-between">
-                        <div className="text-sm font-bold">{r.tee?.course?.name || 'Course'}</div>
-                        <div className="text-sm font-black text-blue-600">{r.differential ?? '--'}</div>
-                      </div>
-                      <div className="text-xs text-gray-500">{r.date} • {r.tee?.color} • Gross {r.gross_score}</div>
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="space-y-3 overflow-auto custom-scrollbar pr-1 py-1">
+              {matchedProfiles.map((h) => (
+                <button 
+                  key={h.golfer_id} 
+                  onClick={() => handleSelectProfile(h)} 
+                  className={`w-full text-left p-3 rounded-xl border-2 transition-all duration-200 ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-100 hover:border-blue-200'}`}
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-bold text-sm text-gray-900 truncate">{h.profile?.name || 'Anonymous'}</div>
+                      <div className="text-[10px] text-gray-400 truncate">{h.profile?.email || ''}</div>
                     </div>
-                  ))}
-                  {profileRounds.length === 0 && <p className="text-xs text-gray-400 italic">No rounds for this player.</p>}
-                </div>
-              )}
+                    <div className="text-blue-600 font-black text-sm">{h.handicap_index ?? '--'}</div>
+                  </div>
+                </button>
+              ))}
+              {matchedProfiles.length === 0 && <p className="text-xs text-gray-400 italic py-4 text-center">No players found.</p>}
             </div>
-          )}
+
+            {selectedProfile && (
+              <div className="mt-4 border-t pt-4 flex flex-col min-h-0 flex-1">
+                <h3 className="font-black text-sm text-gray-900 mb-2 shrink-0">Recent rounds for {selectedProfile.profile?.name}</h3>
+                <div className="divide-y divide-gray-100 flex-1 overflow-auto custom-scrollbar">
+                  {loadingProfileRounds ? (
+                    <div className="py-4 flex justify-center"><div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" /></div>
+                  ) : (
+                    <>
+                      {profileRounds.map(r => (
+                        <div key={r.id} className="py-2">
+                          <div className="flex justify-between items-center gap-2">
+                            <div className="text-[11px] font-bold text-gray-900 truncate flex-1">{r.tee?.course?.name || 'Course'}</div>
+                            <div className="text-[10px] font-black text-blue-600 shrink-0">Diff: {r.differential ?? '--'}</div>
+                          </div>
+                          <div className="text-[10px] text-gray-400 mt-0.5">{r.date} • {r.tee?.color} • Score: {r.gross_score}</div>
+                        </div>
+                      ))}
+                      {profileRounds.length === 0 && <p className="text-xs text-gray-400 italic py-2">No rounds for this player.</p>}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

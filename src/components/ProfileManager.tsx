@@ -114,31 +114,30 @@ const ProfileManager = () => {
           My Profile
         </h2>
 
-        <div className="flex flex-col md:flex-row items-end gap-3 w-full">
-          <div className="flex-1 w-full">
-            <label className="block text-sm font-bold text-gray-700 mb-2">Display Name</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your name"
-                disabled={!isEditingName}
-                className={`w-full p-3 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium transition-colors ${isEditingName
-                  ? 'border border-gray-300 text-gray-900 bg-white'
-                  : 'border border-transparent text-gray-900 bg-gray-50'
-                  }`}
-              />
-              {!isEditingName ? (
+        <div className="flex flex-col items-start w-full">
+          <div className="w-full flex items-center gap-2">
+            {!isEditingName ? (
+              <>
+                <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-gray-900">{name || 'Anonymous'}</h3>
                 <button
                   type="button"
                   onClick={() => setIsEditingName(true)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition"
+                  className="p-2 text-gray-400 hover:text-blue-600 transition shrink-0"
                   title="Edit Name"
                 >
-                  <Edit2 size={18} />
+                  <Edit2 size={20} />
                 </button>
-              ) : (
+              </>
+            ) : (
+              <div className="relative flex-1 max-w-sm">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your name"
+                  autoFocus
+                  className="w-full p-2 pl-3 border border-gray-200 rounded-xl text-gray-900 bg-white text-xl font-bold shadow-sm ring-2 ring-blue-500/20 focus:outline-none"
+                />
                 <button
                   type="button"
                   disabled={saving || !name.trim()}
@@ -167,13 +166,12 @@ const ProfileManager = () => {
                     <Save size={18} />
                   )}
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
-          <div className="w-full md:w-32 shrink-0">
-            <label className="block text-sm font-black text-gray-700 mb-2">Handicap Index</label>
-            <div className="bg-gray-50 p-3 rounded-xl font-black text-center text-blue-700">{handicap !== null ? handicap : '--'}</div>
+          <div className="mt-1">
+            <label className="block text-sm font-black text-blue-700">Handicap Index: {handicap !== null ? handicap : '--'}</label>
           </div>
         </div>
       </div>
