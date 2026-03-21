@@ -58,15 +58,8 @@ function App() {
 
             if (isKeyboard) {
                 setViewportHeight(`${vv.height}px`);
-
-                // Only scroll on transition to keyboard mode to avoid "fighting" the user
-                if (stateChanged && document.activeElement instanceof HTMLElement) {
-                    setTimeout(() => {
-                        // Use block: 'nearest' to avoid "too far" shifts. 
-                        // It only moves if the element is actually obscured.
-                        document.activeElement?.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
-                    }, 80);
-                }
+                // Removed manual scrollIntoView to allow browser's native scroll handling 
+                // to take precedence, preventing double-shifts and fighting.
             } else {
                 setViewportHeight('100dvh');
             }
