@@ -20,7 +20,7 @@ const CourseManager = () => {
  const [teeColor, setTeeColor] = useState('');
  const [teeRating, setTeeRating] = useState('');
  const [teeSlope, setTeeSlope] = useState('');
- const [teePar, setTeePar] = useState('72');
+ const [teePar, setTeePar] = useState('');
  const teeColorRef = useRef<HTMLInputElement | null>(null);
  const panelRef = useRef<HTMLDivElement | null>(null);
 
@@ -115,6 +115,7 @@ const CourseManager = () => {
  setTeeColor('');
  setTeeRating('');
  setTeeSlope('');
+ setTeePar('');
  await fetchCourses();
  toast.success('Tee set added!');
  } catch (error) {

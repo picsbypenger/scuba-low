@@ -100,6 +100,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
  setAdjustedScore('');
  if (onRoundAdded) onRoundAdded();
  toast.success('Round recorded successfully!');
+ navigate('/profile');
  } catch (error: any) {
  console.error('Error adding round:', error);
  const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
