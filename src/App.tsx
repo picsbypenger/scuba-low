@@ -7,6 +7,7 @@ import CourseManager from './components/CourseManager';
 import AddRoundForm from './components/AddRoundForm';
 import Auth from './components/Auth';
 import { Map, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const [session, setSession] = useState<any>(null);
@@ -38,6 +39,7 @@ function App() {
 
   return (
     <Router>
+      <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
       <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
         {/* Navigation */}
         <nav className="bg-white shadow-md border-b sticky top-0 z-50">
@@ -83,9 +85,9 @@ function App() {
               <div className="flex items-center space-x-4">
                 <Link
                   to="/add-round"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center hover:bg-blue-700 transition transform hover:scale-105"
+                  className="bg-rust text-white px-4 py-2 rounded-full text-sm font-bold flex items-center hover:opacity-90 transition transform hover:scale-105"
                 >
-                  <PlusCircle size={18} className="mr-1" /> New Round
+                  <PlusCircle size={18} className="mr-1" /> Add Round
                 </Link>
                 <div className="h-8 w-px bg-gray-200" />
                 <button 
@@ -112,8 +114,8 @@ function App() {
                 <NavLink to="/courses" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
                   Courses
                 </NavLink>
-                <Link to="/add-round" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-gray-800">
-                  New Round
+                <Link to="/add-round" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 rounded-md text-base font-bold text-rust hover:opacity-80">
+                  Add Round
                 </Link>
                 <button onClick={() => { setShowMobileMenu(false); supabase.auth.signOut(); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-red-600">
                   Sign Out

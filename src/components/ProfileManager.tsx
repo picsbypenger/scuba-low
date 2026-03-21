@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
 import { User, Save, Trash2, Edit2, X, Check } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const ProfileManager = () => {
   const [name, setName] = useState('');
@@ -61,10 +62,10 @@ const ProfileManager = () => {
       const res = await updateProfile(name);
       if ((res as any).error) throw (res as any).error;
       await fetchData();
-      alert('Profile updated!');
+      toast.success('Profile updated!');
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      alert(error.message || 'Failed to update profile');
+      toast.error(error.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -99,7 +100,7 @@ const ProfileManager = () => {
       setEditingRoundId(null);
     } catch (error: any) {
       console.error('Failed to update round', error);
-      alert(error.message || 'Failed to update round');
+      toast.error(error.message || 'Failed to update round');
     }
   };
 
@@ -110,7 +111,7 @@ const ProfileManager = () => {
       await fetchData();
     } catch (error: any) {
       console.error('Failed to delete round', error);
-      alert(error.message || 'Failed to delete round');
+      toast.error(error.message || 'Failed to delete round');
     }
   };
 
@@ -214,7 +215,7 @@ const ProfileManager = () => {
                 ) : (
                   <div className="flex space-x-2">
                     <button onClick={() => startEdit(r)} className="p-2 bg-blue-50 text-blue-700 rounded"><Edit2 size={16} /></button>
-                    <button onClick={() => handleDelete(r.id)} className="p-2 bg-red-50 text-red-600 rounded"><Trash2 size={16} /></button>
+                    <button onClick={() => handleDelete(r.id)} className="p-2 bg-rust-light text-rust rounded hover:bg-rust hover:text-white transition"><Trash2 size={16} /></button>
                   </div>
                 )}
               </div>

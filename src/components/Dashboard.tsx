@@ -55,6 +55,11 @@ const Dashboard = () => {
   }, [profileQuery, handicaps]);
 
   const handleSelectProfile = async (p: any) => {
+    if (selectedProfile?.golfer_id === p.golfer_id) {
+      setSelectedProfile(null);
+      setProfileRounds([]);
+      return;
+    }
     setSelectedProfile(p);
     setLoadingProfileRounds(true);
     try {

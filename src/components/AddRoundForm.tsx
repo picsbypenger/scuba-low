@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getCourses, createRound } from '../api';
 import { searchCourses } from '../api';
-import { Calendar, Hash, Trophy, Search, ChevronDown } from 'lucide-react';
+import { Calendar, Hash, Trophy, Search, ChevronDown, Plus } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const state = location.state as { courseId?: number; courseName?: string } | null;
+
   const [courses, setCourses] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(state?.courseName || '');
   const [showSearch, setShowSearch] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  
-  const [courseId, setCourseId] = useState('');
+
+  const [courseId, setCourseId] = useState(state?.courseId?.toString() || '');
   const [teeId, setTeeId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [grossScore, setGrossScore] = useState('');
@@ -22,7 +28,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
     const fetchData = async () => {
       try {
         const coursesRes = await getCourses();
-        setCourses(coursesRes.data || []); 
+        setCourses(coursesRes.data || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -58,7 +64,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
     return () => clearTimeout(t);
   }, [searchQuery]);
 
-  const filteredCourses = courses.filter(c => 
+  const filteredCourses = courses.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     c.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -77,7 +83,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
     if (!date) missing.push('Date');
     if (!grossScore) missing.push('Gross score');
     if (missing.length) {
-      alert(`Please fill: ${missing.join(', ')}`);
+      toast.error(`Please fill: ${missing.join(', ')}`);
       return;
     }
 
@@ -89,15 +95,15 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
         gross_score: parseInt(grossScore),
         adjusted_gross_score: parseInt(adjustedScore || grossScore),
       });
-      
+
       setGrossScore('');
       setAdjustedScore('');
       if (onRoundAdded) onRoundAdded();
-      alert('Round recorded successfully!');
+      toast.success('Round recorded successfully!');
     } catch (error: any) {
       console.error('Error adding round:', error);
       const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
-      alert(`Failed to record round: ${msg}`);
+      toast.error(`Failed to record round: ${msg}`);
     } finally {
       setSubmitting(false);
     }
@@ -120,9 +126,9 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
             <Trophy className="mr-3" size={24} />
             <h2 className="text-xl font-black tracking-tight uppercase">Record a Round</h2>
           </div>
-          <p className="text-blue-100 text-xs font-bold uppercase tracking-widest">WHS Compliant</p>
+          <p className="bg-dustyrose px-3 py-1 rounded text-white text-[10px] font-black uppercase tracking-widest shadow-sm">WHS Compliant</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
@@ -156,7 +162,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                 />
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
               </div>
-              
+
               {showSearch && (
                 <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
                   {filteredCourses.length > 0 ? (
@@ -187,16 +193,28 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   key={t.id}
                   type="button"
                   onClick={() => setTeeId(t.id.toString())}
-                  className={`p-3 border-2 rounded-xl text-sm font-bold transition flex flex-col items-center ${
-                    teeId === t.id.toString() 
-                      ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md transform scale-102' 
-                      : 'border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-200 hover:text-gray-600'
-                  }`}
+                  className={`p-3 border-2 rounded-xl text-sm font-bold transition flex flex-col items-center ${teeId === t.id.toString()
+                    ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-md transform scale-102'
+                    : 'border-gray-100 bg-gray-50 text-gray-400 hover:border-gray-200 hover:text-gray-600'
+                    }`}
                 >
                   <span className="mb-1">{t.color}</span>
                   <span className="text-[10px] font-black opacity-60 uppercase">{t.rating}/{t.slope}</span>
                 </button>
               ))}
+              {courseId && (!selectedCourse?.tees || selectedCourse.tees.length === 0) && (
+                <div className="col-span-full py-6 flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50">
+                  <p className="text-gray-500 font-medium mb-3 text-sm">No tees available for this course.</p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/courses', { state: { courseId: selectedCourse?.id } })}
+                    className="px-4 py-2 bg-dustyrose text-white rounded-lg shadow-sm font-bold text-sm hover:focus:ring-2 hover:opacity-90 transition flex items-center"
+                  >
+                    <Plus size={16} className="mr-1" />
+                    Configure Tees
+                  </button>
+                </div>
+              )}
               {!courseId && (
                 <div className="col-span-full py-4 text-center text-gray-400 italic text-sm">
                   Please search and select a course first
@@ -214,7 +232,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   type="number"
                   value={grossScore}
                   onChange={(e) => setGrossScore(e.target.value)}
-                  placeholder="e.g. 82"
+                  placeholder="Required"
                   className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold text-lg"
                   required
                 />
@@ -229,7 +247,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   type="number"
                   value={adjustedScore}
                   onChange={(e) => setAdjustedScore(e.target.value)}
-                  placeholder="Same as gross if unsure"
+                  placeholder="Optional"
                   className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold text-lg"
                 />
               </div>
@@ -240,7 +258,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white font-black py-4 rounded-xl hover:bg-blue-700 transition shadow-lg transform active:scale-98 disabled:opacity-50 flex items-center justify-center uppercase tracking-widest"
+            className="w-full bg-rust text-white font-black py-4 rounded-xl hover:opacity-90 transition shadow-lg transform active:scale-98 disabled:opacity-50 flex items-center justify-center uppercase tracking-widest"
           >
             {submitting ? (
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
