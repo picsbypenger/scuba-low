@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getHandicaps, getRounds, getUser } from '../api';
-import { History } from 'lucide-react';
+import { History, Users } from 'lucide-react';
 
 const Dashboard = () => {
   const [handicaps, setHandicaps] = useState<any[]>([]);
@@ -12,6 +12,7 @@ const Dashboard = () => {
   const [loadingProfileRounds, setLoadingProfileRounds] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'rounds' | 'players'>('rounds');
 
   // Dashboard is read-only for rounds (editing moved to Profile)
 
@@ -94,44 +95,104 @@ const Dashboard = () => {
 
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent Rounds - Larger column */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-100">
-          <h2 className="text-xl font-black mb-6 flex items-center text-gray-900 tracking-tight">
-            <History className="mr-2 text-blue-500" /> Recent Rounds
-          </h2>
-          <div className="space-y-4">
-            {recentRounds.map(round => (
-              <div key={round.id} className="group flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
-                <div className="flex-1">
-                  <div className="flex items-center">
-                    <p className="font-bold text-gray-900">{round.profile?.name || 'Anonymous'}</p>
-                    {round.golfer_id === currentUserId && (
-                      <span className="ml-2 text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">You</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-0.5">{round.date} • {round.tee?.course?.name} ({round.tee?.color})</p>
-                </div>
+        {/* Main Column */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-100 flex flex-col h-full">
+          <div className="flex items-center space-x-6 mb-6 border-b border-gray-100 pb-2">
+            <h2 
+              onClick={() => setActiveTab('rounds')}
+              className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'rounds' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <History className={`mr-2 ${activeTab === 'rounds' ? 'text-blue-500' : 'text-gray-400'} lg:text-blue-500`} /> Recent Rounds
+            </h2>
+            <h2 
+              onClick={() => setActiveTab('players')}
+              className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'players' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
+            >
+              <Users className={`mr-2 ${activeTab === 'players' ? 'text-blue-500' : 'text-gray-400'}`} /> Players
+            </h2>
+          </div>
 
-                <div className="flex items-center space-x-6">
-                  <div className="text-right">
-                    <div className="text-xl font-black text-gray-900 leading-none">{round.gross_score}</div>
-                    <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {round.differential || '--'}</div>
+          <div className={`flex-1 ${activeTab === 'rounds' ? 'block' : 'hidden lg:block'}`}>
+            <div className="space-y-4 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+              {recentRounds.map(round => (
+                <div key={round.id} className="group flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      <p className="font-bold text-gray-900">{round.profile?.name || 'Anonymous'}</p>
+                      {round.golfer_id === currentUserId && (
+                        <span className="ml-2 text-[8px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">You</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">{round.date} • {round.tee?.course?.name} ({round.tee?.color})</p>
                   </div>
 
-                  {/* Actions for current user's rounds */}
-                  {/* editing & delete actions removed from Dashboard */}
+                  <div className="flex items-center space-x-6">
+                    <div className="text-right">
+                      <div className="text-xl font-black text-gray-900 leading-none">{round.gross_score}</div>
+                      <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {round.differential || '--'}</div>
+                    </div>
+                  </div>
                 </div>
+              ))}
+              {recentRounds.length === 0 && (
+                <p className="text-center text-gray-400 py-8 italic font-medium">No activity to show.</p>
+              )}
+            </div>
+          </div>
+
+          <div className={`flex-1 lg:hidden ${activeTab === 'players' ? 'block' : 'hidden'}`}>
+            <input
+              type="search"
+              placeholder="Search by name"
+              value={profileQuery}
+              onChange={(e) => setProfileQuery(e.target.value)}
+              className="w-full p-3 mb-4 border rounded-lg border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+
+            <div className="space-y-3 max-h-56 overflow-auto custom-scrollbar">
+              {matchedProfiles.map((h) => (
+                <button key={h.golfer_id} onClick={() => handleSelectProfile(h)} className={`w-full text-left p-3 rounded-lg border ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'} hover:bg-gray-50`}>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <div className="font-bold text-sm text-gray-900">{h.profile?.name || 'Anonymous'}</div>
+                      <div className="text-xs text-gray-500">{h.profile?.email || ''}</div>
+                    </div>
+                    <div className="text-blue-600 font-black">{h.handicap_index ?? '--'}</div>
+                  </div>
+                </button>
+              ))}
+              {matchedProfiles.length === 0 && <p className="text-xs text-gray-400 italic">No players found.</p>}
+            </div>
+
+            {selectedProfile && (
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-black text-sm text-gray-900 mb-3">Recent rounds for {selectedProfile.profile?.name}</h3>
+                {loadingProfileRounds ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                ) : (
+                  <div className="space-y-3 max-h-48 overflow-auto custom-scrollbar">
+                    {profileRounds.map(r => (
+                      <div key={r.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div className="flex justify-between">
+                          <div className="text-sm font-bold">{r.tee?.course?.name || 'Course'}</div>
+                          <div className="text-sm font-black text-blue-600">{r.differential ?? '--'}</div>
+                        </div>
+                        <div className="text-xs text-gray-500">{r.date} • {r.tee?.color} • Gross {r.gross_score}</div>
+                      </div>
+                    ))}
+                    {profileRounds.length === 0 && <p className="text-xs text-gray-400 italic">No rounds for this player.</p>}
+                  </div>
+                )}
               </div>
-            ))}
-            {recentRounds.length === 0 && (
-              <p className="text-center text-gray-400 py-8 italic font-medium">No activity to show.</p>
             )}
           </div>
         </div>
 
         {/* Right column: search other users */}
-        <div className="bg-white p-6 rounded-xl border border-gray-100">
-          <h2 className="text-lg font-black mb-4 text-gray-900">Players</h2>
+        <div className="bg-white p-6 rounded-xl border border-gray-100 hidden lg:flex flex-col h-full">
+          <h2 className="text-xl font-black mb-6 flex items-center text-gray-900 tracking-tight border-b border-gray-100 pb-2">
+            <Users className="mr-2 text-blue-500" /> Players
+          </h2>
           <input
             type="search"
             placeholder="Search by name"
@@ -140,7 +201,7 @@ const Dashboard = () => {
             className="w-full p-3 mb-4 border rounded-lg border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <div className="space-y-3 max-h-56 overflow-auto">
+          <div className="space-y-3 max-h-56 overflow-auto custom-scrollbar">
             {matchedProfiles.map((h) => (
               <button key={h.golfer_id} onClick={() => handleSelectProfile(h)} className={`w-full text-left p-3 rounded-lg border ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'} hover:bg-gray-50`}>
                 <div className="flex justify-between items-center">
@@ -161,7 +222,7 @@ const Dashboard = () => {
               {loadingProfileRounds ? (
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
               ) : (
-                <div className="space-y-3 max-h-48 overflow-auto">
+                <div className="space-y-3 max-h-48 overflow-auto custom-scrollbar">
                   {profileRounds.map(r => (
                     <div key={r.id} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                       <div className="flex justify-between">
