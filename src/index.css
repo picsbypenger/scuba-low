@@ -22,24 +22,26 @@
 html,
 body,
 #root {
-  height: 100%;
-  overflow: hidden;
+    height: 100%;
+    overflow: hidden;
 }
 
 /* Prevent iOS Safari auto-zoom on input focus (triggers below 16px) */
 input,
 select,
 textarea {
-  font-size: 16px;
+    font-size: 16px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+    width: 4px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
+    background: #d1d5db;
+    border-radius: 4px;
 }

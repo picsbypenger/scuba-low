@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, Navigate, useLocation } from 'react-router-dom';
+import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from './supabase';
 import Dashboard from './components/Dashboard';
 import ProfileManager from './components/ProfileManager';
@@ -30,72 +31,28 @@ function App() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
-    const [keyboardOpen, setKeyboardOpen] = useState(false);
-    const [viewportHeight, setViewportHeight] = useState('100dvh');
 
-    // Detect mobile keyboard via visualViewport API
     useEffect(() => {
-        const vv = window.visualViewport;
-        if (!vv) return;
-
-        let lastVvHeight = vv.height;
-        let lastIsKeyboard = false;
-
-        const handleResize = () => {
-            if (!vv) return;
-
-            // Only proceed if height changed significantly or state switched
-            const heightDiff = Math.abs(vv.height - lastVvHeight);
-            const isKeyboard = window.innerHeight - vv.height > 120;
-            const stateChanged = isKeyboard !== lastIsKeyboard;
-
-            if (!stateChanged && heightDiff < 5) return;
-
-            lastVvHeight = vv.height;
-            lastIsKeyboard = isKeyboard;
-
-            setKeyboardOpen(isKeyboard);
-
-            if (isKeyboard) {
-                setViewportHeight(`${vv.height}px`);
-                // Removed manual scrollIntoView to allow browser's native scroll handling 
-                // to take precedence, preventing double-shifts and fighting.
-            } else {
-                setViewportHeight('100dvh');
-            }
-        };
-
-        // Revert height FASTER on blur by anticipating the close
-        const handleFocusIn = (e: FocusEvent) => {
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-                setKeyboardOpen(true);
-            }
-        };
+        // Source - Suggested by USER for clean keyboard-to-content reset
         const handleFocusOut = () => {
+            // Short delay to see if another input is being focused (field switching)
             setTimeout(() => {
-                if (!(document.activeElement instanceof HTMLInputElement || document.activeElement instanceof HTMLTextAreaElement)) {
-                    setViewportHeight('100dvh');
-                    setKeyboardOpen(false);
-                    // Reset tracking
-                    lastIsKeyboard = false;
+                const active = document.activeElement;
+                const isInput = active && (
+                    active.tagName === 'INPUT' ||
+                    active.tagName === 'TEXTAREA' ||
+                    active.getAttribute('contenteditable') === 'true'
+                );
+
+                // If no input is focused, reset the viewport to (0,0)
+                if (!isInput) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            }, 50);
+            }, 100);
         };
 
-        // Initial check 
-        handleResize();
-
-        vv.addEventListener('resize', handleResize);
-        vv.addEventListener('scroll', handleResize);
-        window.addEventListener('focusin', handleFocusIn);
-        window.addEventListener('focusout', handleFocusOut);
-
-        return () => {
-            vv.removeEventListener('resize', handleResize);
-            vv.removeEventListener('scroll', handleResize);
-            window.removeEventListener('focusin', handleFocusIn);
-            window.removeEventListener('focusout', handleFocusOut);
-        };
+        document.addEventListener('focusout', handleFocusOut);
+        return () => document.removeEventListener('focusout', handleFocusOut);
     }, []);
 
     useEffect(() => {
@@ -136,7 +93,7 @@ function App() {
                     },
                 }}
             />
-            <div style={{ height: viewportHeight }} className="w-full bg-gray-100 flex flex-col font-sans overflow-hidden transition-[height] duration-300 ease-out">
+            <div className="w-full h-[100dvh] bg-gray-100 flex flex-col font-sans overflow-hidden">
                 {/* Navigation */}
                 <nav className="bg-white shrink-0 z-50">
                     <div className="max-w-7xl mx-auto pl-4 pr-0 sm:px-6 lg:px-8">
@@ -235,11 +192,9 @@ function App() {
                     </Routes>
                 </main>
 
-                {!keyboardOpen && (
-                    <footer className="shrink-0 bg-gray-100 pb-2 text-center text-gray-400 text-xs">
-                        © {new Date().getFullYear()} Golf Handicap Tracker • Bug? Email <a href="mailto:[dryan008@gmail.com]">dryan008@gmail.com</a>
-                    </footer>
-                )}
+                <footer className="shrink-0 bg-gray-100 pb-2 text-center text-gray-400 text-xs">
+                    © {new Date().getFullYear()} Golf Handicap Tracker • Bug? Email <a href="mailto:[dryan008@gmail.com]">dryan008@gmail.com</a>
+                </footer>
             </div>
         </Router>
     );

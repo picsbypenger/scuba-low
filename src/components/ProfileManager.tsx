@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
-import { Save, Edit2, Filter } from 'lucide-react';
+import { Save, Edit2, Filter, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 import toast from 'react-hot-toast';
 
 const ProfileManager = () => {
@@ -24,8 +26,12 @@ const ProfileManager = () => {
   const [filterScoreVal, setFilterScoreVal] = useState('');
   const [filterDiffOp, setFilterDiffOp] = useState<string>('<=');
   const [filterDiffVal, setFilterDiffVal] = useState('');
-  const [filterDateStart, setFilterDateStart] = useState('');
-  const [filterDateEnd, setFilterDateEnd] = useState('');
+  const [filterDateStart, setFilterDateStart] = useState<Date | null>(null);
+  const [filterDateEnd, setFilterDateEnd] = useState<Date | null>(null);
+  const fromPickerRef = useRef<any>(null);
+  const toPickerRef = useRef<any>(null);
+  const [fromOpen, setFromOpen] = useState(false);
+  const [toOpen, setToOpen] = useState(false);
 
   const filteredRounds = rounds.filter(r => {
     if (filterCourse && !r.tee?.course?.name?.toLowerCase().includes(filterCourse.toLowerCase())) return false;
@@ -235,16 +241,16 @@ const ProfileManager = () => {
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-bold text-gray-700">Filter Rounds</h3>
               <button onClick={() => {
-                setFilterCourse(''); setFilterLocation(''); setFilterScoreVal(''); setFilterDiffVal(''); setFilterDateStart(''); setFilterDateEnd('');
+                setFilterCourse(''); setFilterLocation(''); setFilterScoreVal(''); setFilterDiffVal(''); setFilterDateStart(null); setFilterDateEnd(null);
               }} className="text-xs font-bold text-blue-600 hover:underline">Clear All</button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div>
+              <div className="lg:col-span-2">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Course Name</label>
                 <input type="text" value={filterCourse} onChange={e => setFilterCourse(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs" placeholder="" />
               </div>
-              <div>
+              <div className="lg:col-span-2">
                 <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Location</label>
                 <input type="text" value={filterLocation} onChange={e => setFilterLocation(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs" placeholder="" />
               </div>
@@ -279,14 +285,64 @@ const ProfileManager = () => {
                 </div>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-4 flex space-x-3">
-                <div className="w-1/2 md:w-1/4">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">From Date</label>
-                  <input type="date" value={filterDateStart} onChange={e => setFilterDateStart(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs cursor-text" />
+              <div className="sm:col-span-2 lg:col-span-2 grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Start</label>
+                  <div className="relative group">
+                    <DatePicker
+                      ref={fromPickerRef}
+                      selected={filterDateStart}
+                      onChange={(d: Date | null) => setFilterDateStart(d)}
+                      onCalendarOpen={() => setFromOpen(true)}
+                      onCalendarClose={() => setTimeout(() => setFromOpen(false), 100)}
+                      dateFormat="MMM d, yyyy"
+                      className="w-full pl-8 pr-2 py-2 border border-gray-300 rounded-lg text-xs cursor-pointer bg-white"
+                      placeholderText="Date"
+                      isClearable
+                    />
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (fromOpen) fromPickerRef.current?.setOpen(false);
+                        else fromPickerRef.current?.setOpen(true);
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition p-1"
+                      title="Toggle Calendar"
+                    >
+                      <Calendar size={12} />
+                    </button>
+                  </div>
                 </div>
-                <div className="w-1/2 md:w-1/4">
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">To Date</label>
-                  <input type="date" value={filterDateEnd} onChange={e => setFilterDateEnd(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs cursor-text" />
+                <div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">End</label>
+                  <div className="relative group">
+                    <DatePicker
+                      ref={toPickerRef}
+                      selected={filterDateEnd}
+                      onChange={(d: Date | null) => setFilterDateEnd(d)}
+                      onCalendarOpen={() => setToOpen(true)}
+                      onCalendarClose={() => setTimeout(() => setToOpen(false), 100)}
+                      dateFormat="MMM d, yyyy"
+                      className="w-full pl-8 pr-2 py-2 border border-gray-300 rounded-lg text-xs cursor-pointer bg-white"
+                      placeholderText="Date"
+                      isClearable
+                    />
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (toOpen) toPickerRef.current?.setOpen(false);
+                        else toPickerRef.current?.setOpen(true);
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition p-1"
+                      title="Toggle Calendar"
+                    >
+                      <Calendar size={12} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

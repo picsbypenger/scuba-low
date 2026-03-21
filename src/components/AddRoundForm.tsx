@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getCourses, createRound } from '../api';
-import { searchCourses } from '../api';
-import { Hash, Search, ChevronDown, Plus } from 'lucide-react';
+import { Hash, Search, ChevronDown, Plus, Calendar } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 import toast from 'react-hot-toast';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
@@ -17,114 +18,123 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
 
   const [courseId, setCourseId] = useState(state?.courseId?.toString() || '');
   const [teeId, setTeeId] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState<Date | null>(new Date());
   const [grossScore, setGrossScore] = useState('');
   const [adjustedScore, setAdjustedScore] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const datePickerRef = useRef<any>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const coursesRes = await getCourses();
-        setCourses(coursesRes.data || []);
+        const { data, error } = await getCourses();
+        if (error) throw error;
+        setCourses(data || []);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error fetching courses:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
+  }, []);
 
-    // Click outside search to close
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSearch(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Server-side search: query backend when user types
-  useEffect(() => {
-    const q = searchQuery.trim();
-    if (!q) return; // keep current list when empty
+  const filteredCourses = searchQuery.trim() === ''
+    ? []
+    : courses.filter(c =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.location && c.location.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
 
-    const t = setTimeout(async () => {
-      try {
-        const res = await searchCourses(q);
-        setCourses(res.data || []);
-      } catch (err) {
-        console.error('Search error', err);
-      }
-    }, 220);
-
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
-  const filteredCourses = courses.filter(c =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.location?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const selectedCourse = courses.find(c => c.id.toString() === courseId);
 
   const handleSelectCourse = (course: any) => {
     setCourseId(course.id.toString());
     setSearchQuery(course.name);
-    setTeeId('');
     setShowSearch(false);
+    setTeeId('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const missing: string[] = [];
-    if (!teeId) missing.push('Tee');
-    if (!date) missing.push('Date');
-    if (!grossScore) missing.push('Gross score');
-    if (missing.length) {
-      toast.error(`Please fill: ${missing.join(', ')}`);
+    if (!teeId || !grossScore || !date) {
+      toast.error('Please fill in all required fields');
       return;
     }
 
     setSubmitting(true);
     try {
-      await createRound({
+      const payload = {
         tee: parseInt(teeId),
-        date,
+        date: date.toISOString().split('T')[0],
         gross_score: parseInt(grossScore),
-        adjusted_gross_score: parseInt(adjustedScore || grossScore),
-      });
+        adjusted_gross_score: adjustedScore === '' ? parseInt(grossScore) : parseInt(adjustedScore)
+      };
+
+      await createRound(payload);
 
       setGrossScore('');
       setAdjustedScore('');
+      toast.success('Round added successfully!');
       if (onRoundAdded) onRoundAdded();
-      toast.success('Round recorded successfully!');
-      navigate('/profile');
+      navigate('/');
     } catch (error: any) {
       console.error('Error adding round:', error);
-      const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
-      toast.error(`Failed to record round: ${msg}`);
+      toast.error(error.message || 'Failed to add round');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const selectedCourse = courses.find(c => c.id === parseInt(courseId));
+  // Source - https://stackoverflow.com/a/79621435
+  // Posted by Elias Salom
+  // Retrieved 2026-03-21, License - CC BY-SA 4.0
+  const handleFocus = (e: any) => {
+    e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    if (!window.visualViewport) return;
+
+    const handleResize = () => {
+      const vh = window.innerHeight;
+      const visibleHeight = window.visualViewport?.height || vh;
+      // Get the amount the viewport has shrunk
+      const shift = Math.max(0, vh - visibleHeight);
+      setKeyboardHeight(shift);
+    };
+
+    window.visualViewport.addEventListener('resize', handleResize);
+    window.visualViewport.addEventListener('scroll', handleResize); // Sometimes needed for scroll-into-view
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
+    };
+  }, []);
 
   if (loading) return (
-    <div className="p-12 text-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
-      <p className="text-gray-500 font-medium">Loading courses...</p>
+    <div className="p-8 text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto" />
     </div>
   );
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col max-w-2xl w-full mx-auto">
+    <div className="max-w-2xl mx-auto w-full flex flex-col min-h-0 bg-gray-50/50">
       <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col flex-1 min-h-0">
         <div className="bg-blue-600 shrink-0 p-4 text-white flex items-center justify-between">
           <div className="flex items-center">
@@ -133,17 +143,45 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
           <p className="text-white text-[10px] font-black uppercase tracking-widest">WHS Compliant</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
-          <div className="grid md:grid-cols-2 gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="px-5 pt-5 flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-4"
+          style={{ paddingBottom: keyboardHeight > 0 ? `${keyboardHeight + 20}px` : '1.25rem' }}
+        >
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Date Played</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium bg-white"
-                required
-              />
+              <div className="relative">
+                <DatePicker
+                  ref={datePickerRef}
+                  selected={date}
+                  onChange={(d: Date | null) => setDate(d)}
+                  onCalendarOpen={() => setPickerOpen(true)}
+                  onCalendarClose={() => setTimeout(() => setPickerOpen(false), 100)}
+                  dateFormat="MMMM d, yyyy"
+                  className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium bg-white cursor-pointer"
+                  placeholderText="Select date"
+                  maxDate={new Date()}
+                  onFocus={handleFocus}
+                  required
+                />
+                <button
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (pickerOpen) {
+                      datePickerRef.current?.setOpen(false);
+                    } else {
+                      datePickerRef.current?.setOpen(true);
+                    }
+                  }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition p-1"
+                  title="Toggle Calendar"
+                >
+                  <Calendar size={18} />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2 relative" ref={searchRef}>
@@ -157,7 +195,10 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                     setSearchQuery(e.target.value);
                     setShowSearch(true);
                   }}
-                  onFocus={() => setShowSearch(true)}
+                  onFocus={(e) => {
+                    setShowSearch(true);
+                    handleFocus(e);
+                  }}
                   placeholder="Search course name..."
                   className="w-full pl-10 pr-10 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                 />
@@ -218,7 +259,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   <button
                     type="button"
                     onClick={() => navigate('/courses', { state: { courseId: selectedCourse?.id } })}
-                    className="px-4 py-2 bg-dustyrose text-white rounded-lg font-bold text-sm hover:focus:ring-2 hover:opacity-90 transition flex items-center"
+                    className="px-4 py-2 bg-rust text-white rounded-lg font-bold text-sm hover:focus:ring-2 hover:opacity-90 transition flex items-center"
                   >
                     <Plus size={16} className="mr-1" />
                     Configure Tees
@@ -233,7 +274,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-1 gap-4 pt-4 border-t border-gray-100">
             <div className="space-y-2">
               <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Gross Score</label>
               <div className="relative">
@@ -242,6 +283,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   type="number"
                   value={grossScore}
                   onChange={(e) => setGrossScore(e.target.value)}
+                  onFocus={handleFocus}
                   placeholder="Required"
                   className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold text-lg"
                   required
@@ -257,21 +299,21 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                   type="number"
                   value={adjustedScore}
                   onChange={(e) => setAdjustedScore(e.target.value)}
+                  onFocus={handleFocus}
                   placeholder="Optional"
                   className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-bold text-lg"
                 />
               </div>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">(Max net double bogey limit)</p>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-rust text-white font-black py-4 rounded-xl hover:opacity-90 transition transform active:scale-98 disabled:opacity-50 flex items-center justify-center uppercase tracking-widest"
+            className="w-full bg-blue-600 text-white py-4 rounded-xl font-black uppercase tracking-widest hover:bg-blue-700 transition transform disabled:opacity-50 shadow-blue-200 flex items-center justify-center mt-2"
           >
             {submitting ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white" />
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
             ) : (
               'Save Round'
             )}
