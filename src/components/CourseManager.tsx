@@ -53,17 +53,16 @@ const CourseManager = () => {
 
   useEffect(() => {
     if (selectedCourseId) {
+      // Focus the first input
       setTimeout(() => {
         teeColorRef.current?.focus();
       }, 50);
-    }
-  }, [selectedCourseId]);
 
-  useEffect(() => {
-    if (selectedCourseId && panelRef.current) {
-      const smallScreen = window.innerWidth < 1024;
-      if (smallScreen) {
-        panelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Scroll panel into view on mobile
+      if (window.innerWidth < 1024) {
+        setTimeout(() => {
+          panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       }
     }
   }, [selectedCourseId]);

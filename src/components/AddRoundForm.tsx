@@ -163,13 +163,9 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
                 />
                 <button
                   type="button"
-                  onMouseDown={(e) => {
+                  onPointerDown={(e) => {
                     e.preventDefault(); // Prevents input from gaining or losing focus
-                    setShowSearch(!showSearch);
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault();
-                    setShowSearch(!showSearch);
+                    setShowSearch(prev => !prev);
                   }}
                   className="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-gray-400 hover:text-gray-600 focus:outline-none"
                 >

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
-import { Save, Edit2 } from 'lucide-react';
+import { Save, Edit2, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ProfileManager = () => {
@@ -15,6 +15,47 @@ const ProfileManager = () => {
 
   const [editingRoundId, setEditingRoundId] = useState<number | null>(null);
   const [editData, setEditData] = useState<any>({});
+
+  // Filter states
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterCourse, setFilterCourse] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterScoreOp, setFilterScoreOp] = useState<string>('<=');
+  const [filterScoreVal, setFilterScoreVal] = useState('');
+  const [filterDiffOp, setFilterDiffOp] = useState<string>('<=');
+  const [filterDiffVal, setFilterDiffVal] = useState('');
+  const [filterDateStart, setFilterDateStart] = useState('');
+  const [filterDateEnd, setFilterDateEnd] = useState('');
+
+  const filteredRounds = rounds.filter(r => {
+    if (filterCourse && !r.tee?.course?.name?.toLowerCase().includes(filterCourse.toLowerCase())) return false;
+    if (filterLocation && !r.tee?.course?.location?.toLowerCase().includes(filterLocation.toLowerCase())) return false;
+
+    if (filterScoreVal) {
+      const s = parseInt(filterScoreVal);
+      if (!isNaN(s)) {
+        if (filterScoreOp === '<=' && r.gross_score > s) return false;
+        if (filterScoreOp === '>=' && r.gross_score < s) return false;
+        if (filterScoreOp === '=' && r.gross_score !== s) return false;
+      }
+    }
+
+    if (filterDiffVal) {
+      const d = parseFloat(filterDiffVal);
+      if (!isNaN(d) && r.differential !== null) {
+        if (filterDiffOp === '<=' && r.differential > d) return false;
+        if (filterDiffOp === '>=' && r.differential < d) return false;
+        if (filterDiffOp === '=' && r.differential !== d) return false;
+      } else if (!isNaN(d) && r.differential === null) {
+        return false;
+      }
+    }
+
+    if (filterDateStart && r.date < filterDateStart) return false;
+    if (filterDateEnd && r.date > filterDateEnd) return false;
+
+    return true;
+  });
 
   const fetchData = async () => {
     try {
@@ -178,10 +219,82 @@ const ProfileManager = () => {
 
       {/* My Rounds */}
       <div className="flex flex-col flex-1 min-h-0 bg-white py-5 pl-5 pr-4 rounded-2xl border border-gray-100">
-        <h2 className="shrink-0 text-xl font-black text-gray-900">My Rounds</h2>
+        <div className="shrink-0 flex justify-between items-center mb-3">
+          <h2 className="text-xl font-black text-gray-900">My Rounds</h2>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`p-2 rounded-lg transition ${showFilters ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:bg-gray-100'}`}
+            title="Filter Rounds"
+          >
+            <Filter size={18} />
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className="shrink-0 mb-4 p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-gray-700">Filter Rounds</h3>
+              <button onClick={() => {
+                setFilterCourse(''); setFilterLocation(''); setFilterScoreVal(''); setFilterDiffVal(''); setFilterDateStart(''); setFilterDateEnd('');
+              }} className="text-xs font-bold text-blue-600 hover:underline">Clear All</button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Course Name</label>
+                <input type="text" value={filterCourse} onChange={e => setFilterCourse(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs" placeholder="" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Location</label>
+                <input type="text" value={filterLocation} onChange={e => setFilterLocation(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs" placeholder="" />
+              </div>
+
+              <div className="flex space-x-2">
+                <div className="w-1/3">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Score</label>
+                  <select value={filterScoreOp} onChange={e => setFilterScoreOp(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs appearance-none">
+                    <option value="<=">&le;</option>
+                    <option value="=">=</option>
+                    <option value=">=">&ge;</option>
+                  </select>
+                </div>
+                <div className="w-2/3">
+                  <label className="block text-[10px] font-black text-transparent uppercase tracking-widest mb-1">.</label>
+                  <input type="number" value={filterScoreVal} onChange={e => setFilterScoreVal(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs" placeholder="##" />
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <div className="w-1/3">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Diff</label>
+                  <select value={filterDiffOp} onChange={e => setFilterDiffOp(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs appearance-none">
+                    <option value="<=">&le;</option>
+                    <option value="=">=</option>
+                    <option value=">=">&ge;</option>
+                  </select>
+                </div>
+                <div className="w-2/3">
+                  <label className="block text-[10px] font-black text-transparent uppercase tracking-widest mb-1">.</label>
+                  <input type="number" step="0.1" value={filterDiffVal} onChange={e => setFilterDiffVal(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs" placeholder="##" />
+                </div>
+              </div>
+
+              <div className="sm:col-span-2 lg:col-span-4 flex space-x-3">
+                <div className="w-1/2 md:w-1/4">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">From Date</label>
+                  <input type="date" value={filterDateStart} onChange={e => setFilterDateStart(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs cursor-text" />
+                </div>
+                <div className="w-1/2 md:w-1/4">
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">To Date</label>
+                  <input type="date" value={filterDateEnd} onChange={e => setFilterDateEnd(e.target.value)} className="w-full p-2 border border-gray-300 rounded-lg text-xs cursor-text" />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar divide-y divide-gray-100">
-          {rounds.map(r => (
+          {filteredRounds.map(r => (
             <div key={r.id} className="w-full py-3">
               <div className="flex justify-between items-start">
                 <div className="flex-1 pr-4">
@@ -246,8 +359,8 @@ const ProfileManager = () => {
             </div>
           ))}
 
-          {rounds.length === 0 && (
-            <p className="text-center text-gray-400 italic">You have no recorded rounds.</p>
+          {filteredRounds.length === 0 && (
+            <p className="text-center text-gray-400 italic py-6">No rounds found matching your filters.</p>
           )}
         </div>
       </div>

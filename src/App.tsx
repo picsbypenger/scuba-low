@@ -44,24 +44,51 @@ function App() {
             const isKeyboard = window.innerHeight - vv.height > KEYBOARD_THRESHOLD;
             setKeyboardOpen(isKeyboard);
             
-            // Explicitly map exactly to visual viewport height. This solves Safari/Chrome 
-            // mobile issues where 100dvh doesn't perfectly match the space above the keyboard
-            setViewportHeight(`${vv.height}px`);
+            if (isKeyboard) {
+                // When open, map exactly to visual viewport height. This solves Safari/Chrome 
+                // mobile issues where 100dvh doesn't perfectly match the space above the keyboard
+                setViewportHeight(`${vv.height}px`);
 
-            // Scroll the focused element into view when keyboard opens
-            if (isKeyboard && document.activeElement instanceof HTMLElement) {
-                // Must wait briefly for React/DOM to finish updating container dimensions
-                setTimeout(() => {
-                    document.activeElement?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
-                }, 150);
+                // Scroll the focused element into view when keyboard opens
+                if (document.activeElement instanceof HTMLElement) {
+                    // Must wait briefly for React/DOM to finish updating container dimensions
+                    setTimeout(() => {
+                        document.activeElement?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+                    }, 150);
+                }
+            } else {
+                // When keyboard is closed, immediately fallback to CSS 100dvh. 
+                // This eliminates the visualViewport closing event lag and snaps cleanly.
+                setViewportHeight('100dvh');
             }
         };
 
-        // Initialize immediately 
-        setViewportHeight(`${vv.height}px`);
+        // Initial check 
+        handleResize();
+
+        // Listen for BOTH viewport changes AND explicit focus events.
+        // Focus events are MUCH faster for hiding/showing elements like the footer.
+        const handleFocusIn = (e: FocusEvent) => {
+           if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+               setKeyboardOpen(true);
+           }
+        };
+        const handleFocusOut = () => {
+           // We let handleResize determine when it's TRULY closed to avoid flickering 
+           // when moving between inputs
+        };
 
         vv.addEventListener('resize', handleResize);
-        return () => vv.removeEventListener('resize', handleResize);
+        vv.addEventListener('scroll', handleResize);
+        window.addEventListener('focusin', handleFocusIn);
+        window.addEventListener('focusout', handleFocusOut);
+        
+        return () => {
+            vv.removeEventListener('resize', handleResize);
+            vv.removeEventListener('scroll', handleResize);
+            window.removeEventListener('focusin', handleFocusIn);
+            window.removeEventListener('focusout', handleFocusOut);
+        };
     }, []);
 
     useEffect(() => {
