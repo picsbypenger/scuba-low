@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, Navigate, useLocation } from 'react-router-dom';
-import "react-datepicker/dist/react-datepicker.css";
+
 import { supabase } from './supabase';
 import Dashboard from './components/Dashboard';
 import ProfileManager from './components/ProfileManager';

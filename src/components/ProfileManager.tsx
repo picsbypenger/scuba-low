@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
-import { Save, Edit2, Filter, Calendar } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import { Save, Edit2, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ProfileManager = () => {
@@ -26,12 +24,8 @@ const ProfileManager = () => {
   const [filterScoreVal, setFilterScoreVal] = useState('');
   const [filterDiffOp, setFilterDiffOp] = useState<string>('<=');
   const [filterDiffVal, setFilterDiffVal] = useState('');
-  const [filterDateStart, setFilterDateStart] = useState<Date | null>(null);
-  const [filterDateEnd, setFilterDateEnd] = useState<Date | null>(null);
-  const fromPickerRef = useRef<any>(null);
-  const toPickerRef = useRef<any>(null);
-  const [fromOpen, setFromOpen] = useState(false);
-  const [toOpen, setToOpen] = useState(false);
+  const [filterDateStart, setFilterDateStart] = useState<string>('');
+  const [filterDateEnd, setFilterDateEnd] = useState<string>('');
 
   const filteredRounds = rounds.filter(r => {
     if (filterCourse && !r.tee?.course?.name?.toLowerCase().includes(filterCourse.toLowerCase())) return false;
@@ -241,7 +235,7 @@ const ProfileManager = () => {
             <div className="flex justify-between items-center mb-3">
               <h3 className="font-bold text-gray-700">Filter Rounds</h3>
               <button onClick={() => {
-                setFilterCourse(''); setFilterLocation(''); setFilterScoreVal(''); setFilterDiffVal(''); setFilterDateStart(null); setFilterDateEnd(null);
+                setFilterCourse(''); setFilterLocation(''); setFilterScoreVal(''); setFilterDiffVal(''); setFilterDateStart(''); setFilterDateEnd('');
               }} className="text-xs font-bold text-blue-600 hover:underline">Clear All</button>
             </div>
 
@@ -287,62 +281,23 @@ const ProfileManager = () => {
 
               <div className="sm:col-span-2 lg:col-span-2 grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Start</label>
-                  <div className="relative group">
-                    <DatePicker
-                      ref={fromPickerRef}
-                      selected={filterDateStart}
-                      onChange={(d: Date | null) => setFilterDateStart(d)}
-                      onCalendarOpen={() => setFromOpen(true)}
-                      onCalendarClose={() => setTimeout(() => setFromOpen(false), 100)}
-                      dateFormat="MMM d, yyyy"
-                      className="w-full pl-8 pr-2 py-2 border border-gray-300 rounded-lg text-xs cursor-pointer bg-white"
-                      placeholderText="Date"
-                      isClearable
-                    />
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (fromOpen) fromPickerRef.current?.setOpen(false);
-                        else fromPickerRef.current?.setOpen(true);
-                      }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition p-1"
-                      title="Toggle Calendar"
-                    >
-                      <Calendar size={12} />
-                    </button>
-                  </div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={filterDateStart}
+                    onChange={(e) => setFilterDateStart(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-lg text-xs bg-white"
+                  />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">End</label>
-                  <div className="relative group">
-                    <DatePicker
-                      ref={toPickerRef}
-                      selected={filterDateEnd}
-                      onChange={(d: Date | null) => setFilterDateEnd(d)}
-                      onCalendarOpen={() => setToOpen(true)}
-                      onCalendarClose={() => setTimeout(() => setToOpen(false), 100)}
-                      dateFormat="MMM d, yyyy"
-                      className="w-full pl-8 pr-2 py-2 border border-gray-300 rounded-lg text-xs cursor-pointer bg-white"
-                      placeholderText="Date"
-                      isClearable
-                    />
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (toOpen) toPickerRef.current?.setOpen(false);
-                        else toPickerRef.current?.setOpen(true);
-                      }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition p-1"
-                      title="Toggle Calendar"
-                    >
-                      <Calendar size={12} />
-                    </button>
-                  </div>
+                  <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={filterDateEnd}
+                    onChange={(e) => setFilterDateEnd(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-lg text-xs bg-white "
+
+                  />
                 </div>
               </div>
             </div>
@@ -382,18 +337,18 @@ const ProfileManager = () => {
                 <div className="mt-4 grid md:grid-cols-4 gap-3">
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date</label>
-                    <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                    <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded w-vw text-sm font-medium" />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Course</label>
-                    <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded w-full text-sm font-bold">
+                    <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded w-full text-sm font-medium">
                       <option value="">Select course</option>
                       {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                     </select>
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tee Set</label>
-                    <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded w-full text-sm font-bold">
+                    <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded w-full text-sm font-medium">
                       <option value="">Select tee</option>
                       {teesForCourse(editData.course_id).map((t: any) => (
                         <option key={t.id} value={t.id}>{t.color} ({t.rating}/{t.slope})</option>
@@ -403,11 +358,11 @@ const ProfileManager = () => {
                   <div className="flex space-x-2">
                     <div className="w-1/2">
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Gross</label>
-                      <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                      <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-medium" />
                     </div>
                     <div className="w-1/2">
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Adj</label>
-                      <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                      <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-medium" />
                     </div>
                   </div>
                 </div>

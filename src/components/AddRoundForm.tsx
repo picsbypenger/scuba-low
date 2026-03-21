@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getCourses, createRound } from '../api';
-import { Hash, Search, ChevronDown, Plus, Calendar } from 'lucide-react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import { Hash, Search, ChevronDown, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
@@ -18,14 +16,12 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
 
   const [courseId, setCourseId] = useState(state?.courseId?.toString() || '');
   const [teeId, setTeeId] = useState('');
-  const [date, setDate] = useState<Date | null>(new Date());
+  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [grossScore, setGrossScore] = useState('');
   const [adjustedScore, setAdjustedScore] = useState('');
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const datePickerRef = useRef<any>(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +75,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
     try {
       const payload = {
         tee: parseInt(teeId),
-        date: date.toISOString().split('T')[0],
+        date: date,
         gross_score: parseInt(grossScore),
         adjusted_gross_score: adjustedScore === '' ? parseInt(grossScore) : parseInt(adjustedScore)
       };
@@ -151,37 +147,15 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
           <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Date Played</label>
-              <div className="relative">
-                <DatePicker
-                  ref={datePickerRef}
-                  selected={date}
-                  onChange={(d: Date | null) => setDate(d)}
-                  onCalendarOpen={() => setPickerOpen(true)}
-                  onCalendarClose={() => setTimeout(() => setPickerOpen(false), 100)}
-                  dateFormat="MMMM d, yyyy"
-                  className="w-full pl-10 pr-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium bg-white cursor-pointer"
-                  placeholderText="Select date"
-                  maxDate={new Date()}
-                  onFocus={handleFocus}
-                  required
-                />
-                <button
-                  type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (pickerOpen) {
-                      datePickerRef.current?.setOpen(false);
-                    } else {
-                      datePickerRef.current?.setOpen(true);
-                    }
-                  }}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition p-1"
-                  title="Toggle Calendar"
-                >
-                  <Calendar size={18} />
-                </button>
-              </div>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="px-4 py-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium bg-white"
+                onFocus={handleFocus}
+                required
+              />
             </div>
 
             <div className="space-y-2 relative" ref={searchRef}>
