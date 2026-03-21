@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
-import { User, Save, Trash2, Edit2, X, Check } from 'lucide-react';
+import { Save, Trash2, Edit2, X, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ProfileManager = () => {
   const [name, setName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
   const [handicap, setHandicap] = useState<number | null>(null);
 
@@ -54,22 +55,6 @@ const ProfileManager = () => {
     fetchData();
   }, []);
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setSaving(true);
-    try {
-      const res = await updateProfile(name);
-      if ((res as any).error) throw (res as any).error;
-      await fetchData();
-      toast.success('Profile updated!');
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast.error(error.message || 'Failed to update profile');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const startEdit = (r: any) => {
     setEditingRoundId(r.id);
@@ -122,65 +107,92 @@ const ProfileManager = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex-1 min-h-0 flex flex-col gap-4 w-full max-w-4xl mx-auto">
       {/* My Profile & Handicap */}
-      <div className="bg-white p-8 rounded-2xl border border-gray-100 max-w-4xl mx-auto">
-        <h2 className="text-2xl font-black mb-6 flex items-center text-gray-900 tracking-tight">
-          <User className="mr-3 text-blue-600" size={28} /> My Profile
+      <div className="shrink-0 bg-white p-5 rounded-2xl border border-gray-100">
+        <h2 className="text-xl font-black mb-4 flex items-center text-gray-900 tracking-tight">
+          My Profile
         </h2>
 
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div className="grid md:grid-cols-3 gap-6 items-end">
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">Display Name</label>
+        <div className="flex flex-col md:flex-row items-end gap-3 w-full">
+          <div className="flex-1 w-full">
+            <label className="block text-sm font-bold text-gray-700 mb-2">Display Name</label>
+            <div className="relative">
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
-                className="w-full p-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+                disabled={!isEditingName}
+                className={`w-full p-3 pr-12 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium transition-colors ${isEditingName
+                  ? 'border border-gray-300 text-gray-900 bg-white'
+                  : 'border border-transparent text-gray-900 bg-gray-50'
+                  }`}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-black text-gray-700 mb-2">Handicap Index</label>
-              <div className="bg-gray-50 p-3 rounded-xl font-black text-center text-blue-700">{handicap !== null ? handicap : '--'}</div>
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {saving ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+              {!isEditingName ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingName(true)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition"
+                  title="Edit Name"
+                >
+                  <Edit2 size={18} />
+                </button>
               ) : (
-                <>
-                  <Save size={16} className="mr-2" /> Save
-                </>
+                <button
+                  type="button"
+                  disabled={saving || !name.trim()}
+                  onClick={async () => {
+                    if (!name.trim()) return;
+                    setSaving(true);
+                    try {
+                      const res = await updateProfile(name);
+                      if ((res as any).error) throw (res as any).error;
+                      await fetchData();
+                      setIsEditingName(false);
+                      toast.success('Profile updated!');
+                    } catch (error: any) {
+                      console.error('Error updating profile:', error);
+                      toast.error(error.message || 'Failed to update profile');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-blue-600 hover:text-blue-800 disabled:opacity-50 transition"
+                  title="Save Name"
+                >
+                  {saving ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                  ) : (
+                    <Save size={18} />
+                  )}
+                </button>
               )}
-            </button>
+            </div>
           </div>
-        </form>
+
+          <div className="w-full md:w-32 shrink-0">
+            <label className="block text-sm font-black text-gray-700 mb-2">Handicap Index</label>
+            <div className="bg-gray-50 p-3 rounded-xl font-black text-center text-blue-700">{handicap !== null ? handicap : '--'}</div>
+          </div>
+        </div>
       </div>
 
       {/* My Rounds */}
-      <div className="bg-white p-6 rounded-2xl border border-gray-100 max-w-4xl mx-auto">
-        <h2 className="text-2xl font-black mb-4 text-gray-900">My Rounds</h2>
+      <div className="flex flex-col flex-1 min-h-0 bg-white p-5 rounded-2xl border border-gray-100">
+        <h2 className="shrink-0 text-xl font-black mb-3 text-gray-900">My Rounds</h2>
 
-        <div className="space-y-4">
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar divide-y divide-gray-100">
           {rounds.map(r => (
-            <div key={r.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start justify-between">
+            <div key={r.id} className="w-full py-3 flex items-start justify-between">
               <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold text-gray-900">{r.tee?.course?.name} <span className="text-xs text-gray-500">({r.tee?.color})</span></p>
-                    <p className="text-sm text-gray-500">{r.date}</p>
+                <div className="flex justify-between items-center">
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">{r.tee?.course?.name}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{r.date} • {r.tee?.color}</p>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xl font-black text-gray-900">{r.gross_score}</div>
+                  <div className="text-right mr-4">
+                    <div className="text-xl font-black text-gray-900 leading-none">{r.gross_score}</div>
                     <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {r.differential ?? '--'}</div>
                   </div>
                 </div>
@@ -223,12 +235,12 @@ const ProfileManager = () => {
 
               <div className="ml-4 flex flex-col items-end space-y-2">
                 {editingRoundId === r.id ? (
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col space-y-1">
                     <button onClick={() => saveRound(r.id)} className="p-2 bg-limegreen hover:bg-limegreen-dark text-white rounded transition"><Check size={16} /></button>
                     <button onClick={cancelEdit} className="p-2 bg-gray-100 rounded"><X size={16} /></button>
                   </div>
                 ) : (
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col space-y-1">
                     <button onClick={() => startEdit(r)} className="p-2 bg-blue-50 text-blue-700 rounded"><Edit2 size={16} /></button>
                     <button onClick={() => handleDelete(r.id)} className="p-2 bg-rust-light text-rust rounded hover:bg-rust hover:text-white transition"><Trash2 size={16} /></button>
                   </div>

@@ -6,7 +6,7 @@ import ProfileManager from './components/ProfileManager';
 import CourseManager from './components/CourseManager';
 import AddRoundForm from './components/AddRoundForm';
 import Auth from './components/Auth';
-import { Map, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
+import { FlagTriangleRight, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
@@ -52,9 +52,9 @@ function App() {
  },
  }} 
  />
- <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
+ <div className="h-[100dvh] bg-gray-100 flex flex-col font-sans overflow-hidden">
  {/* Navigation */}
- <nav className="bg-white sticky top-0 z-50">
+ <nav className="bg-white shrink-0 z-50">
  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
  <div className="flex justify-between h-16">
  <div className="flex items-center">
@@ -89,7 +89,7 @@ function App() {
  `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
  }
  >
- <Map size={18} className="mr-1" /> Courses
+ <FlagTriangleRight size={18} className="mr-1" /> Courses
  </NavLink>
  {/* Data tab removed */}
  </div>
@@ -138,7 +138,7 @@ function App() {
  </nav>
 
  {/* Content */}
- <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
+ <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col">
  <Routes>
  <Route path="/" element={<Dashboard />} />
  <Route path="/profile" element={<ProfileManager />} />
@@ -149,7 +149,7 @@ function App() {
  </Routes>
  </main>
 
- <footer className="bg-white py-4 text-center text-gray-400 text-xs">
+ <footer className="shrink-0 bg-white py-2 text-center text-gray-400 text-xs">
  © {new Date().getFullYear()} Golf Handicap Tracker • Built with React & Supabase
  </footer>
  </div>

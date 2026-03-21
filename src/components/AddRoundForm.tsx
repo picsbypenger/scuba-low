@@ -120,9 +120,9 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
   );
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100">
-        <div className="bg-blue-600 p-6 text-white flex items-center justify-between">
+    <div className="flex-1 min-h-0 flex flex-col max-w-2xl w-full mx-auto">
+      <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col flex-1 min-h-0">
+        <div className="bg-blue-600 shrink-0 p-4 text-white flex items-center justify-between">
           <div className="flex items-center">
             <Trophy className="mr-3" size={24} />
             <h2 className="text-xl font-black tracking-tight uppercase">Add Round</h2>
@@ -130,7 +130,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
           <p className="text-white text-[10px] font-black uppercase tracking-widest">WHS Compliant</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Date Played</label>

@@ -91,12 +91,12 @@ const Dashboard = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="flex-1 min-h-0 flex flex-col gap-3">
 
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-4">
         {/* Main Column */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-gray-100 flex flex-col h-full">
+        <div className="lg:col-span-2 bg-white p-4 rounded-xl border border-gray-100 flex flex-col flex-1 min-h-0">
           <div className="flex items-center space-x-6 mb-6 border-b border-gray-100 pb-2">
             <h2 
               onClick={() => setActiveTab('rounds')}
@@ -112,8 +112,8 @@ const Dashboard = () => {
             </h2>
           </div>
 
-          <div className={`flex-1 ${activeTab === 'rounds' ? 'block' : 'hidden lg:block'}`}>
-            <div className="space-y-4 max-h-[460px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className={`flex-1 min-h-0 ${activeTab === 'rounds' ? 'block' : 'hidden lg:block'}`}>
+            <div className="h-full overflow-y-auto pr-2 custom-scrollbar space-y-3">
               {recentRounds.map(round => (
                 <div key={round.id} className="group flex justify-between items-center p-4 bg-gray-50 rounded-xl border border-gray-100">
                   <div className="flex-1">
