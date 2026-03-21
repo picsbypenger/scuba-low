@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { supabase } from '../supabase';
-import { Mail, LogIn, Trophy, Key } from 'lucide-react';
+import { Mail, LogIn, UserPlus, Key } from 'lucide-react';
 
 const Auth = () => {
     const [loading, setLoading] = useState(false);
@@ -34,10 +34,10 @@ const Auth = () => {
     return (
         <div className="min-h-[80vh] flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white rounded-2xl overflow-hidden border border-gray-100">
-                <div className="bg-blue-600 p-8 text-white text-center">
-                    <Trophy size={48} className="mx-auto mb-4" />
-                    <h1 className="text-3xl font-black tracking-tighter">GOLF HANDICAP</h1>
-                    <p className="text-blue-100 mt-2">Sign in to track your index</p>
+                <div className="bg-gray-100 border-b border-gray-200 p-8 text-gray-900 text-center">
+                    <img src="/favicon.svg" alt="Scuba Low Logo" className="mx-auto h-16 w-16 mb-4" />
+                    <h1 className="text-2xl font-black tracking-tighter">"SCUBA LOW"<br></br> GOLF HANDICAP TRACKER</h1>
+                    <p className="text-gray-500 mt-2"></p>
                 </div>
 
                 <div className="p-8">
@@ -48,7 +48,7 @@ const Auth = () => {
                             </label>
                             <input
                                 type="email"
-                                placeholder="you@example.com"
+                                placeholder="Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="w-full p-3 border rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
@@ -62,7 +62,7 @@ const Auth = () => {
                             </label>
                             <input
                                 type="password"
-                                placeholder="Your password"
+                                placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full p-3 border rounded-lg border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
@@ -72,13 +72,14 @@ const Auth = () => {
 
                         <button
                             disabled={loading}
-                            className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition flex items-center justify-center transform hover:-translate-y-0.5 active:translate-y-0"
+                            className={`w-full text-white font-bold py-3 rounded-lg transition flex items-center justify-center transform hover:-translate-y-0.5 active:translate-y-0 ${mode === 'signup' ? 'bg-rust hover:opacity-90' : 'bg-blue-600 hover:bg-blue-700'}`}
                         >
                             {loading ? (
                                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
                             ) : (
                                 <>
-                                    <LogIn size={20} className="mr-2" /> {mode === 'signup' ? 'Create account' : 'Sign in'}
+                                    {mode === 'signup' ? <UserPlus size={20} className="mr-2" /> : <LogIn size={20} className="mr-2" />}
+                                    {mode === 'signup' ? 'Create account' : 'Sign in'}
                                 </>
                             )}
                         </button>

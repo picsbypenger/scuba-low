@@ -214,7 +214,7 @@ const CourseManager = () => {
  setSelectedCourseId(course.id);
  }
  }}
- className={`cursor-pointer group relative p-6 border-2 rounded-2xl transition-all duration-300 ${selectedCourseId === course.id ? 'border-blue-500 bg-blue-50/30 ' : 'border-gray-100 bg-white hover:border-blue-200 '}`}
+ className={`cursor-pointer flex flex-col h-full group relative p-6 border-2 rounded-2xl transition-all duration-300 ${selectedCourseId === course.id ? 'border-blue-500 bg-blue-50/30 ' : 'border-gray-100 bg-white hover:border-blue-200 '}`}
  >
  <div className="flex justify-between items-start mb-4">
  <div>
