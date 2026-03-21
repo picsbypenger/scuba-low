@@ -96,24 +96,24 @@ const Dashboard = () => {
 
       <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-4">
         {/* Main Column */}
-        <div className="lg:col-span-2 bg-white p-4 rounded-xl border border-gray-100 flex flex-col flex-1 min-h-0">
-          <div className="flex items-center space-x-6 mb-6 border-b border-gray-100 pb-2">
+        <div className="lg:col-span-2 bg-white px-5 pb-4 pt-2 rounded-2xl border border-gray-100 flex flex-col flex-1 min-h-0">
+          <div className="flex w-full items-center mb-2 border-b border-gray-100">
             <h2
               onClick={() => setActiveTab('rounds')}
-              className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'rounds' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 lg:flex-none flex items-center justify-center lg:justify-start py-3 lg:pr-4 lg:pl-1 text-xl font-black tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'rounds' ? 'text-gray-900 border-b-2 lg:border-none border-blue-500 -mb-[1px] lg:mb-0' : 'text-gray-400 hover:text-gray-600'}`}
             >
-              <History className={`mr-2 ${activeTab === 'rounds' ? 'text-blue-500' : 'text-gray-400'} lg:text-blue-500`} /> Recent Rounds
+              <History className={`mr-2 ${activeTab === 'rounds' ? 'text-blue-500' : 'text-gray-400'} lg:text-blue-500`} /> Recent
             </h2>
             <h2
               onClick={() => setActiveTab('players')}
-              className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'players' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
+              className={`flex-1 flex items-center justify-center py-3 text-xl font-black tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'players' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[1px]' : 'text-gray-400 hover:text-gray-600'}`}
             >
               <Users className={`mr-2 ${activeTab === 'players' ? 'text-blue-500' : 'text-gray-400'}`} /> Players
             </h2>
           </div>
 
           <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 'rounds' ? 'block' : 'hidden lg:block'}`}>
-            <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar divide-y divide-gray-100">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-2 custom-scrollbar divide-y divide-gray-100">
               {recentRounds.map(round => (
                 <div key={round.id} className="group flex justify-between items-center py-3">
                   <div className="flex-1">
@@ -204,10 +204,12 @@ const Dashboard = () => {
         </div>
 
         {/* Right column: search other users */}
-        <div className="bg-white p-4 rounded-xl border border-gray-100 hidden lg:flex flex-col flex-1 min-h-0">
-          <h2 className="text-xl font-black mb-6 flex items-center text-gray-900 tracking-tight border-b border-gray-100 pb-2">
-            <Users className="mr-2 text-blue-500" /> Players
-          </h2>
+        <div className="bg-white px-5 pb-4 pt-2 rounded-2xl border border-gray-100 hidden lg:flex flex-col flex-1 min-h-0">
+          <div className="flex w-full items-center mb-2 border-b border-gray-100">
+            <h2 className="flex-1 lg:flex-none flex items-center justify-start py-3 lg:pr-4 lg:pl-1 text-xl font-black tracking-tight text-gray-900">
+              <Users className="mr-2 text-blue-500" /> Players
+            </h2>
+          </div>
           <input
             type="search"
             placeholder="Search by name"
@@ -219,9 +221,9 @@ const Dashboard = () => {
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
             <div className="space-y-3 overflow-auto custom-scrollbar pr-1 py-1">
               {matchedProfiles.map((h) => (
-                <button 
-                  key={h.golfer_id} 
-                  onClick={() => handleSelectProfile(h)} 
+                <button
+                  key={h.golfer_id}
+                  onClick={() => handleSelectProfile(h)}
                   className={`w-full text-left p-3 rounded-xl border-2 transition-all duration-200 ${selectedProfile?.golfer_id === h.golfer_id ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-100 hover:border-blue-200'}`}
                 >
                   <div className="flex justify-between items-center">

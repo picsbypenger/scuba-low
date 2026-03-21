@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getCourses, createCourse, createTee } from '../api';
-import { FlagTriangleRight, Plus, Search } from 'lucide-react';
+import { FlagTriangleRight, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const CourseManager = () => {
@@ -16,6 +16,9 @@ const CourseManager = () => {
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(state?.courseId || null);
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [activeTab, setActiveTab] = useState<'search' | 'browse'>('browse');
+
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // New Tee form
   const [teeColor, setTeeColor] = useState('');
@@ -65,16 +68,26 @@ const CourseManager = () => {
     }
   }, [selectedCourseId]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const activeFilter = (newCourseName || newCourseLocation).trim().toLowerCase();
-  const filteredCourses = activeFilter
+  const dropdownCourses = activeFilter
     ? courses.filter(c => {
       const name = (c.name || '').toLowerCase();
       const loc = (c.location || '').toLowerCase();
       return name.includes(activeFilter) || loc.includes(activeFilter);
     })
-    : courses;
+    : [];
 
-  const displayedCourses = selectedCourseId ? filteredCourses.filter(c => c.id === selectedCourseId) : filteredCourses;
+  const displayedCourses = selectedCourseId ? courses.filter(c => c.id === selectedCourseId) : courses;
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +178,7 @@ const CourseManager = () => {
 
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 overflow-y-auto custom-scrollbar">
         <div className="flex-1">
-          <div className={`grid gap-6 md:grid-cols-2 ${selectedCourseId ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
+          <div className={`grid gap-2 md:grid-cols-2 ${selectedCourseId ? 'lg:grid-cols-2' : 'lg:grid-cols-3'}`}>
             {displayedCourses.map((course) => (
               <div
                 key={course.id}
@@ -224,7 +237,7 @@ const CourseManager = () => {
               </div>
             ))}
           </div>
-          {filteredCourses.length === 0 && (
+          {displayedCourses.length === 0 && (
             <p className="text-center text-gray-400 italic mt-6">No matching courses found.</p>
           )}
         </div>
@@ -297,21 +310,21 @@ const CourseManager = () => {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col">
-      <div className="bg-white p-5 rounded-2xl border border-gray-100 flex flex-col flex-1 min-h-0">
+      <div className="bg-white px-5 pb-4 pt-2 rounded-2xl border border-gray-100 flex flex-col flex-1 min-h-0">
 
         {/* ─── Header with mobile tabs ─── */}
-        <div className="flex items-center space-x-6 mb-6 border-b border-gray-100 pb-2">
+        <div className="flex w-full items-center mb-6 border-b border-gray-100">
           <h2
             onClick={() => setActiveTab('browse')}
-            className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'browse' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 lg:flex-none flex items-center justify-center lg:justify-start py-3 lg:px-4 text-xl font-black tracking-tight cursor-pointer lg:cursor-text lg:text-gray-900 transition ${activeTab === 'browse' ? 'text-gray-900 border-b-2 lg:border-none border-blue-500 -mb-[1px] lg:mb-0' : 'text-gray-400 hover:text-gray-600'}`}
           >
-            <FlagTriangleRight className="mr-2 text-blue-600" size={24} /> Browse Courses
+            <FlagTriangleRight className="mr-2 text-blue-600" size={24} /> Browse
           </h2>
           <h2
             onClick={() => setActiveTab('search')}
-            className={`text-xl font-black flex items-center tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'search' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[10px] pb-[10px]' : 'text-gray-400 hover:text-gray-600'}`}
+            className={`flex-1 flex items-center justify-center py-3 text-xl font-black tracking-tight cursor-pointer lg:hidden transition ${activeTab === 'search' ? 'text-gray-900 border-b-2 border-blue-500 -mb-[1px]' : 'text-gray-400 hover:text-gray-600'}`}
           >
-            <Search className="mr-2 text-blue-600" size={22} /> Add Course
+            <Plus className="mr-2 text-blue-600" size={22} /> Add
           </h2>
         </div>
 
@@ -360,21 +373,58 @@ const CourseManager = () => {
         <div className="flex flex-col flex-1 min-h-0 lg:hidden">
           {/* Add Course tab */}
           <div className={`flex-1 min-h-0 flex flex-col ${activeTab === 'search' ? 'flex' : 'hidden'}`}>
-            <div className="mb-6">
+            <div className="mb-6 relative" ref={dropdownRef}>
               <form onSubmit={handleCreateCourse} className="flex flex-col gap-3 w-full">
-                <input
-                  type="text"
-                  value={newCourseName}
-                  onChange={(e) => setNewCourseName(e.target.value)}
-                  placeholder="Course Name"
-                  className={`w-full p-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium ${selectedCourseId ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
-                  required
-                  disabled={Boolean(selectedCourseId)}
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={newCourseName}
+                    onChange={(e) => {
+                      setNewCourseName(e.target.value);
+                      setShowDropdown(true);
+                    }}
+                    onFocus={() => setShowDropdown(true)}
+                    placeholder="Course Name"
+                    className={`w-full p-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium ${selectedCourseId ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                    required
+                    disabled={Boolean(selectedCourseId)}
+                  />
+                  {showDropdown && activeFilter && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                      {dropdownCourses.length > 0 ? (
+                        <div className="divide-y divide-gray-100">
+                          {dropdownCourses.map(c => (
+                            <button
+                              key={c.id}
+                              type="button"
+                              onClick={() => {
+                                setSelectedCourseId(c.id);
+                                setShowDropdown(false);
+                                setActiveTab('browse');
+                                setNewCourseName('');
+                                setNewCourseLocation('');
+                              }}
+                              className="w-full text-left py-3 px-4 hover:bg-blue-50 transition"
+                            >
+                              <div className="font-bold text-sm text-gray-900">{c.name}</div>
+                              <div className="text-xs text-gray-500">{c.location || 'Unknown location'}</div>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center text-sm text-gray-500 italic">No matching courses. Complete form to add.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={newCourseLocation}
-                  onChange={(e) => setNewCourseLocation(e.target.value)}
+                  onChange={(e) => {
+                    setNewCourseLocation(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
                   placeholder="Location (City, ST)"
                   className={`w-full p-3 border rounded-xl border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium ${selectedCourseId ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                   disabled={Boolean(selectedCourseId)}
@@ -388,25 +438,6 @@ const CourseManager = () => {
                 </button>
               </form>
             </div>
-            {/* Show filtered results as a simple list for quick reference */}
-            {activeFilter && (
-              <div className="flex-1 min-h-0 overflow-auto custom-scrollbar">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Matching Courses</h3>
-                <div className="divide-y divide-gray-100">
-                  {filteredCourses.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => { setSelectedCourseId(c.id); setActiveTab('browse'); }}
-                      className="w-full text-left py-3 hover:bg-gray-50 transition"
-                    >
-                      <div className="font-bold text-sm text-gray-900">{c.name}</div>
-                      <div className="text-xs text-gray-400">{c.location || 'Unknown location'}</div>
-                    </button>
-                  ))}
-                  {filteredCourses.length === 0 && <p className="text-xs text-gray-400 italic py-4 text-center">No matching courses.</p>}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Browse tab */}

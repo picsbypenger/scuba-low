@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../supabase';
 import { updateProfile, getProfiles, getRounds, updateRound, deleteRound, getCourses, getHandicaps } from '../api';
-import { Save, Trash2, Edit2, X, Check } from 'lucide-react';
+import { Save, Edit2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ProfileManager = () => {
@@ -107,9 +107,9 @@ const ProfileManager = () => {
   };
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col gap-4 w-full max-w-4xl mx-auto">
+    <div className="flex-1 min-h-0 flex flex-col gap-2 w-full max-w-4xl mx-auto">
       {/* My Profile & Handicap */}
-      <div className="shrink-0 bg-white p-5 rounded-2xl border border-gray-100">
+      <div className="shrink-0 bg-white px-5 pb-5 pt-4 rounded-2xl border border-gray-100">
         {/* <h2 className="text-xl font-black mb-4 flex items-center text-gray-900 tracking-tight">
           My Profile
         </h2> */}
@@ -177,73 +177,72 @@ const ProfileManager = () => {
       </div>
 
       {/* My Rounds */}
-      <div className="flex flex-col flex-1 min-h-0 bg-white p-5 rounded-2xl border border-gray-100">
+      <div className="flex flex-col flex-1 min-h-0 bg-white py-5 pl-5 pr-4 rounded-2xl border border-gray-100">
         <h2 className="shrink-0 text-xl font-black mb-3 text-gray-900">My Rounds</h2>
 
         <div className="flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar divide-y divide-gray-100">
           {rounds.map(r => (
-            <div key={r.id} className="w-full py-3 flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex justify-between items-center">
-                  <div className="flex-1">
-                    <p className="font-bold text-gray-900">{r.tee?.course?.name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{r.date} • {r.tee?.color}</p>
-                  </div>
-                  <div className="text-right mr-4">
-                    <div className="text-xl font-black text-gray-900 leading-none">{r.gross_score}</div>
-                    <div className="text-xs font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {r.differential ?? '--'}</div>
+            <div key={r.id} className="w-full py-3">
+              <div className="flex justify-between items-start">
+                <div className="flex-1 pr-4">
+                  <p className="font-bold text-gray-900">{r.tee?.course?.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{r.date} • {r.tee?.color}</p>
+
+                  <div className="flex items-center space-x-3 mt-1">
+                    {editingRoundId === r.id ? (
+                      <>
+                        <button onClick={() => saveRound(r.id)} className="text-xs font-regular text-blue-600 hover:text-blue-800 underline underline-offset-2 transition">Save</button>
+                        <button onClick={cancelEdit} className="text-xs font-regular text-gray-400 hover:text-gray-700 underline underline-offset-2 transition">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => startEdit(r)} className="text-xs font-regular text-gray-400 hover:text-blue-600 underline underline-offset-2 transition">Edit</button>
+                        <button onClick={() => handleDelete(r.id)} className="text-xs font-regular text-gray-400 hover:text-rust underline underline-offset-2 transition">Delete</button>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {editingRoundId === r.id ? (
-                  <div className="mt-4 grid md:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date</label>
-                      <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Course</label>
-                      <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded w-full text-sm font-bold">
-                        <option value="">Select course</option>
-                        {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tee Set</label>
-                      <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded w-full text-sm font-bold">
-                        <option value="">Select tee</option>
-                        {teesForCourse(editData.course_id).map((t: any) => (
-                          <option key={t.id} value={t.id}>{t.color} ({t.rating}/{t.slope})</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="flex space-x-2">
-                      <div className="w-1/2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Gross</label>
-                        <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
-                      </div>
-                      <div className="w-1/2">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Adj</label>
-                        <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+                <div className="flex flex-col items-end">
+                  <div className="text-xl font-black text-gray-900 leading-none">{r.gross_score}</div>
+                  <div className="text-sm font-bold text-blue-600 mt-1 px-2 py-0.5 bg-blue-50 rounded">Diff: {r.differential ?? '--'}</div>
+                </div>
               </div>
 
-              <div className="flex flex-col items-end space-y-2">
-                {editingRoundId === r.id ? (
-                  <div className="flex flex-col space-y-1">
-                    <button onClick={() => saveRound(r.id)} className="p-2 bg-limegreen hover:bg-limegreen-dark text-white rounded transition"><Check size={16} /></button>
-                    <button onClick={cancelEdit} className="p-2 bg-gray-100 rounded"><X size={16} /></button>
+              {editingRoundId === r.id ? (
+                <div className="mt-4 grid md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Date</label>
+                    <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
                   </div>
-                ) : (
-                  <div className="flex flex-col space-y-1">
-                    <button onClick={() => startEdit(r)} className="p-2 bg-blue-50 text-blue-700 rounded"><Edit2 size={16} /></button>
-                    <button onClick={() => handleDelete(r.id)} className="p-2 bg-rust-light text-rust rounded hover:bg-rust hover:text-white transition"><Trash2 size={16} /></button>
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Course</label>
+                    <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded w-full text-sm font-bold">
+                      <option value="">Select course</option>
+                      {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                    </select>
                   </div>
-                )}
-              </div>
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Tee Set</label>
+                    <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded w-full text-sm font-bold">
+                      <option value="">Select tee</option>
+                      {teesForCourse(editData.course_id).map((t: any) => (
+                        <option key={t.id} value={t.id}>{t.color} ({t.rating}/{t.slope})</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex space-x-2">
+                    <div className="w-1/2">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Gross</label>
+                      <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                    </div>
+                    <div className="w-1/2">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Adj</label>
+                      <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full text-sm font-bold" />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ))}
 

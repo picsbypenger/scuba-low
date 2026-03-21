@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, NavLink, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './supabase';
 import Dashboard from './components/Dashboard';
 import ProfileManager from './components/ProfileManager';
@@ -9,10 +9,51 @@ import Auth from './components/Auth';
 import { FlagTriangleRight, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
+const MobilePageTitle = () => {
+    const location = useLocation();
+    let title = '';
+    switch (location.pathname) {
+        case '/': title = 'Dashboard'; break;
+        case '/profile': title = 'Profile'; break;
+        case '/courses': title = 'Courses'; break;
+        case '/add-round': title = 'Add Round'; break;
+    }
+
+    return title ? (
+        <span className="sm:hidden text-lg font-bold text-gray-900">
+            {title}
+        </span>
+    ) : null;
+};
+
 function App() {
     const [session, setSession] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showMobileMenu, setShowMobileMenu] = useState(false);
+    const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+    // Detect mobile keyboard via visualViewport API
+    useEffect(() => {
+        const vv = window.visualViewport;
+        if (!vv) return;
+
+        const KEYBOARD_THRESHOLD = 150; // px difference to consider keyboard "open"
+
+        const handleResize = () => {
+            const isKeyboard = window.innerHeight - vv.height > KEYBOARD_THRESHOLD;
+            setKeyboardOpen(isKeyboard);
+
+            // Scroll the focused element into view when keyboard opens
+            if (isKeyboard && document.activeElement instanceof HTMLElement) {
+                setTimeout(() => {
+                    document.activeElement?.scrollIntoView?.({ block: 'center', behavior: 'smooth' });
+                }, 100);
+            }
+        };
+
+        vv.addEventListener('resize', handleResize);
+        return () => vv.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,11 +102,12 @@ function App() {
                                 {/* Mobile menu button on left */}
                                 <button
                                     onClick={() => setShowMobileMenu(prev => !prev)}
-                                    className="sm:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 mr-3"
+                                    className="sm:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 mr-2"
                                     aria-label="Toggle navigation"
                                 >
                                     {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
                                 </button>
+                                <MobilePageTitle />
                                 <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
                                     <NavLink
                                         to="/"
@@ -138,7 +180,7 @@ function App() {
                 </nav>
 
                 {/* Content */}
-                <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex flex-col">
+                <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-2 flex flex-col">
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/profile" element={<ProfileManager />} />
@@ -149,9 +191,11 @@ function App() {
                     </Routes>
                 </main>
 
-                <footer className="shrink-0 bg-gray-100 py-2 text-center text-gray-400 text-xs">
-                    © {new Date().getFullYear()} Golf Handicap Tracker • Send bugs to <a href="mailto:[dryan008@gmail.com]">dryan008@gmail.com</a>
-                </footer>
+                {!keyboardOpen && (
+                    <footer className="shrink-0 bg-gray-100 pb-2 text-center text-gray-400 text-xs">
+                        © {new Date().getFullYear()} Golf Handicap Tracker • Bug? Email <a href="mailto:[dryan008@gmail.com]">dryan008@gmail.com</a>
+                    </footer>
+                )}
             </div>
         </Router>
     );
