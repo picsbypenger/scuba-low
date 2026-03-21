@@ -124,7 +124,7 @@ const ProfileManager = () => {
   return (
     <div className="space-y-8">
       {/* My Profile & Handicap */}
-      <div className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 max-w-3xl mx-auto">
+      <div className="bg-white p-8 rounded-2xl border border-gray-100 max-w-4xl mx-auto">
         <h2 className="text-2xl font-black mb-6 flex items-center text-gray-900 tracking-tight">
           <User className="mr-3 text-blue-600" size={28} /> My Profile
         </h2>
@@ -152,10 +152,10 @@ const ProfileManager = () => {
             <button
               type="submit"
               disabled={saving}
-              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-blue-700 transition shadow-lg disabled:opacity-50"
+              className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold flex items-center hover:bg-blue-700 transition disabled:opacity-50"
             >
               {saving ? (
-                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
               ) : (
                 <>
                   <Save size={16} className="mr-2" /> Save
@@ -167,7 +167,7 @@ const ProfileManager = () => {
       </div>
 
       {/* My Rounds */}
-      <div className="bg-white p-6 rounded-2xl shadow-xl border border-gray-100 max-w-4xl mx-auto">
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 max-w-4xl mx-auto">
         <h2 className="text-2xl font-black mb-4 text-gray-900">My Rounds</h2>
 
         <div className="space-y-4">
@@ -187,20 +187,20 @@ const ProfileManager = () => {
 
                 {editingRoundId === r.id ? (
                   <div className="mt-4 grid md:grid-cols-4 gap-3">
-                    <input type="date" value={editData.date} onChange={e => setEditData({...editData, date: e.target.value})} className="p-2 border rounded" />
-                    <select value={editData.course_id || ''} onChange={e => setEditData({...editData, course_id: parseInt(e.target.value), tee_id: null})} className="p-2 border rounded">
+                    <input type="date" value={editData.date} onChange={e => setEditData({ ...editData, date: e.target.value })} className="p-2 border rounded" />
+                    <select value={editData.course_id || ''} onChange={e => setEditData({ ...editData, course_id: parseInt(e.target.value), tee_id: null })} className="p-2 border rounded">
                       <option value="">Select course</option>
                       {courses.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
                     </select>
-                    <select value={editData.tee_id || ''} onChange={e => setEditData({...editData, tee_id: parseInt(e.target.value)})} className="p-2 border rounded">
+                    <select value={editData.tee_id || ''} onChange={e => setEditData({ ...editData, tee_id: parseInt(e.target.value) })} className="p-2 border rounded">
                       <option value="">Select tee</option>
                       {teesForCourse(editData.course_id).map((t: any) => (
                         <option key={t.id} value={t.id}>{t.color} ({t.rating}/{t.slope})</option>
                       ))}
                     </select>
                     <div className="flex space-x-2">
-                      <input type="number" value={editData.gross_score} onChange={e => setEditData({...editData, gross_score: e.target.value})} className="p-2 border rounded w-full" />
-                      <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({...editData, adjusted_gross_score: e.target.value})} className="p-2 border rounded w-full" />
+                      <input type="number" value={editData.gross_score} onChange={e => setEditData({ ...editData, gross_score: e.target.value })} className="p-2 border rounded w-full" />
+                      <input type="number" value={editData.adjusted_gross_score} onChange={e => setEditData({ ...editData, adjusted_gross_score: e.target.value })} className="p-2 border rounded w-full" />
                     </div>
                   </div>
                 ) : null}
@@ -209,7 +209,7 @@ const ProfileManager = () => {
               <div className="ml-4 flex flex-col items-end space-y-2">
                 {editingRoundId === r.id ? (
                   <div className="flex space-x-2">
-                    <button onClick={() => saveRound(r.id)} className="p-2 bg-green-600 text-white rounded"><Check size={16} /></button>
+                    <button onClick={() => saveRound(r.id)} className="p-2 bg-limegreen hover:bg-limegreen-dark text-white rounded transition"><Check size={16} /></button>
                     <button onClick={cancelEdit} className="p-2 bg-gray-100 rounded"><X size={16} /></button>
                   </div>
                 ) : (

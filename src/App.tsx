@@ -10,139 +10,151 @@ import { Map, PlusCircle, LayoutDashboard, LogOut, User, Menu, X } from 'lucide-
 import { Toaster } from 'react-hot-toast';
 
 function App() {
-  const [session, setSession] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+ const [session, setSession] = useState<any>(null);
+ const [loading, setLoading] = useState(true);
+ const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
+ useEffect(() => {
+ supabase.auth.getSession().then(({ data: { session } }) => {
+ setSession(session);
+ setLoading(false);
+ });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+ const {
+ data: { subscription },
+ } = supabase.auth.onAuthStateChange((_event, session) => {
+ setSession(session);
+ });
 
-    return () => subscription.unsubscribe();
-  }, []);
+ return () => subscription.unsubscribe();
+ }, []);
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-    </div>
-  );
+ if (loading) return (
+ <div className="min-h-screen flex items-center justify-center bg-gray-50">
+ <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+ </div>
+ );
 
-  if (!session) return <Auth />;
+ if (!session) return <Auth />;
 
-  return (
-    <Router>
-      <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: '#333', color: '#fff' } }} />
-      <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
-        {/* Navigation */}
-        <nav className="bg-white shadow-md border-b sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                {/* Mobile menu button on left */}
-                <button
-                  onClick={() => setShowMobileMenu(prev => !prev)}
-                  className="sm:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 mr-3"
-                  aria-label="Toggle navigation"
-                >
-                  {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
-                </button>
-                <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
-                  <NavLink 
-                    to="/" 
-                    className={({ isActive }) => 
-                      `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
-                    }
-                  >
-                    <LayoutDashboard size={18} className="mr-1" /> Dashboard
-                  </NavLink>
-                  <NavLink 
-                    to="/profile" 
-                    className={({ isActive }) => 
-                      `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
-                    }
-                  >
-                    <User size={18} className="mr-1" /> Profile
-                  </NavLink>
-                  <NavLink 
-                    to="/courses" 
-                    className={({ isActive }) => 
-                      `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
-                    }
-                  >
-                    <Map size={18} className="mr-1" /> Courses
-                  </NavLink>
-                  {/* Data tab removed */}
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Link
-                  to="/add-round"
-                  className="bg-rust text-white px-4 py-2 rounded-full text-sm font-bold flex items-center hover:opacity-90 transition transform hover:scale-105"
-                >
-                  <PlusCircle size={18} className="mr-1" /> Add Round
-                </Link>
-                <div className="h-8 w-px bg-gray-200" />
-                <button 
-                  onClick={() => supabase.auth.signOut()}
-                  className="text-gray-500 hover:text-red-600 transition p-2"
-                  title="Sign Out"
-                >
-                  <LogOut size={20} />
-                </button>
-              </div>
-            </div>
-          </div>
+ return (
+ <Router>
+ <Toaster 
+ position="top-center" 
+ toastOptions={{ 
+ duration: 4000, 
+ style: { background: '#333', color: '#fff' },
+ success: {
+ iconTheme: {
+ primary: '#a7d49b',
+ secondary: '#333',
+ },
+ },
+ }} 
+ />
+ <div className="min-h-screen bg-gray-100 flex flex-col font-sans">
+ {/* Navigation */}
+ <nav className="bg-white sticky top-0 z-50">
+ <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+ <div className="flex justify-between h-16">
+ <div className="flex items-center">
+ {/* Mobile menu button on left */}
+ <button
+ onClick={() => setShowMobileMenu(prev => !prev)}
+ className="sm:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100 mr-3"
+ aria-label="Toggle navigation"
+ >
+ {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
+ </button>
+ <div className="hidden sm:ml-8 sm:flex sm:space-x-4">
+ <NavLink 
+ to="/" 
+ className={({ isActive }) => 
+ `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
+ }
+ >
+ <LayoutDashboard size={18} className="mr-1" /> Dashboard
+ </NavLink>
+ <NavLink 
+ to="/profile" 
+ className={({ isActive }) => 
+ `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
+ }
+ >
+ <User size={18} className="mr-1" /> Profile
+ </NavLink>
+ <NavLink 
+ to="/courses" 
+ className={({ isActive }) => 
+ `inline-flex items-center px-3 py-2 text-sm font-medium transition-colors duration-200 ${isActive ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`
+ }
+ >
+ <Map size={18} className="mr-1" /> Courses
+ </NavLink>
+ {/* Data tab removed */}
+ </div>
+ </div>
+ <div className="flex items-center space-x-4">
+ <Link
+ to="/add-round"
+ className="bg-rust text-white px-4 py-2 rounded-full text-sm font-bold flex items-center hover:opacity-90 transition transform hover:scale-105"
+ >
+ <PlusCircle size={18} className="mr-1" /> Add Round
+ </Link>
+ <div className="h-8 w-px bg-gray-200" />
+ <button 
+ onClick={() => supabase.auth.signOut()}
+ className="text-gray-500 hover:text-red-600 transition p-2"
+ title="Sign Out"
+ >
+ <LogOut size={20} />
+ </button>
+ </div>
+ </div>
+ </div>
 
-          {/* Mobile navigation panel */}
-          {showMobileMenu && (
-            <div className="sm:hidden border-t bg-white">
-              <div className="px-4 pt-2 pb-4 space-y-1">
-                <NavLink to="/" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
-                  Dashboard
-                </NavLink>
-                <NavLink to="/profile" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
-                  Profile
-                </NavLink>
-                <NavLink to="/courses" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
-                  Courses
-                </NavLink>
-                <Link to="/add-round" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 rounded-md text-base font-bold text-rust hover:opacity-80">
-                  Add Round
-                </Link>
-                <button onClick={() => { setShowMobileMenu(false); supabase.auth.signOut(); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-red-600">
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          )}
-        </nav>
+ {/* Mobile navigation panel */}
+ {showMobileMenu && (
+ <div className="sm:hidden border-t bg-white">
+ <div className="px-4 pt-2 pb-4 space-y-1">
+ <NavLink to="/" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
+ Dashboard
+ </NavLink>
+ <NavLink to="/profile" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
+ Profile
+ </NavLink>
+ <NavLink to="/courses" onClick={() => setShowMobileMenu(false)} className={({isActive}) => `block px-3 py-2 rounded-md text-base font-medium ${isActive ? 'text-blue-600' : 'text-gray-600 hover:text-gray-800'}`}>
+ Courses
+ </NavLink>
+ <Link to="/add-round" onClick={() => setShowMobileMenu(false)} className="block px-3 py-2 rounded-md text-base font-bold text-rust hover:opacity-80">
+ Add Round
+ </Link>
+ <button onClick={() => { setShowMobileMenu(false); supabase.auth.signOut(); }} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-red-600">
+ Sign Out
+ </button>
+ </div>
+ </div>
+ )}
+ </nav>
 
-        {/* Content */}
-        <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/profile" element={<ProfileManager />} />
-            <Route path="/courses" element={<CourseManager />} />
-            <Route path="/add-round" element={<AddRoundForm />} />
-            {/* Data route removed */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
+ {/* Content */}
+ <main className="flex-1 max-w-7xl w-full mx-auto py-6 sm:px-6 lg:px-8">
+ <Routes>
+ <Route path="/" element={<Dashboard />} />
+ <Route path="/profile" element={<ProfileManager />} />
+ <Route path="/courses" element={<CourseManager />} />
+ <Route path="/add-round" element={<AddRoundForm />} />
+ {/* Data route removed */}
+ <Route path="*" element={<Navigate to="/" replace />} />
+ </Routes>
+ </main>
 
-        <footer className="bg-white border-t py-4 text-center text-gray-400 text-xs">
-          © {new Date().getFullYear()} Golf Handicap Tracker • Built with React & Supabase
-        </footer>
-      </div>
-    </Router>
-  );
+ <footer className="bg-white py-4 text-center text-gray-400 text-xs">
+ © {new Date().getFullYear()} Golf Handicap Tracker • Built with React & Supabase
+ </footer>
+ </div>
+ </Router>
+ );
 }
 
 export default App;
