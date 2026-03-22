@@ -248,7 +248,7 @@ const AddRoundForm = ({ onRoundAdded }: { onRoundAdded?: () => void }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
             <div className="space-y-2">
               <label className="block text-sm font-black text-gray-700 uppercase tracking-wider">Gross Score</label>
               <div className="relative">
